@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { RefreshCw, AlertTriangle } from "lucide-react";
 
@@ -47,7 +47,24 @@ type AdminGlobalStatsResponse = {
   top_qrs: Array<{ short_code: string; destination_url: string; scans: number | string }>;
 };
 
-export default function AdminDashboard() {
+export default function AdminDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[60vh] text-slate-400">
+          <div className="flex flex-col items-center gap-3">
+            <RefreshCw className="animate-spin text-indigo-500" size={32} />
+            <p>Loading Admin Console...</p>
+          </div>
+        </div>
+      }
+    >
+      <AdminDashboard />
+    </Suspense>
+  );
+}
+
+function AdminDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentView = searchParams.get('view') || 'analytics';

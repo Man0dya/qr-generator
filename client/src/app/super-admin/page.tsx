@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { RefreshCw, AlertTriangle } from "lucide-react";
 
@@ -48,7 +48,24 @@ type AdminGlobalStatsResponse = {
 
 type SystemSetting = { setting_key: string; setting_value: string };
 
-export default function SuperAdminDashboard() {
+export default function SuperAdminDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[60vh] text-slate-400">
+          <div className="flex flex-col items-center gap-3">
+            <RefreshCw className="animate-spin text-indigo-500" size={32} />
+            <p>Loading Super Admin Console...</p>
+          </div>
+        </div>
+      }
+    >
+      <SuperAdminDashboard />
+    </Suspense>
+  );
+}
+
+function SuperAdminDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentView = searchParams.get("view") || "analytics";

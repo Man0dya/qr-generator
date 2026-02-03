@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -53,6 +53,14 @@ export default function SuperAdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  return (
+    <Suspense fallback={null}>
+      <SuperAdminLayoutInner>{children}</SuperAdminLayoutInner>
+    </Suspense>
+  );
+}
+
+function SuperAdminLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
