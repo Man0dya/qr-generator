@@ -12,6 +12,7 @@ import SystemControls from "@/app/admin/_components/SystemControls";
 import LoginHistoryView from "@/app/admin/_components/LoginHistoryView";
 import AuditLogView from "@/app/admin/_components/AuditLogView";
 import UserQrsView from "@/app/admin/_components/UserQrsView";
+import UrlModerationTable from "@/app/admin/_components/UrlModerationTable";
 import DomainsTable from "./_components/DomainsTable";
 import TeamsTable from "./_components/TeamsTable";
 
@@ -59,6 +60,17 @@ type AdminGlobalStatsResponse = {
 
 type SystemSetting = { setting_key: string; setting_value: string };
 
+type AdminUrlRow = {
+  id: number;
+  short_code: string;
+  destination_url: string;
+  status: "active" | "paused" | "expired" | "blocked";
+  email: string;
+  total_clicks: number | string;
+  is_flagged?: number | boolean;
+  flag_reason?: string | null;
+};
+
 export default function SuperAdminDashboardPage() {
   return (
     <Suspense
@@ -87,6 +99,7 @@ function SuperAdminDashboard() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [maintenance, setMaintenance] = useState("false");
   const [settings, setSettings] = useState<SystemSetting[]>([]);
+  const [urlLinks, setUrlLinks] = useState<AdminUrlRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -112,6 +125,14 @@ function SuperAdminDashboard() {
           const globalRes = await apiFetch("/admin_global_stats.php");
           const globalJson: AdminGlobalStatsResponse = await globalRes.json();
           if (globalJson.success) setGlobalStats(globalJson);
+        }
+
+        if (currentView === "url-moderation") {
+          const urlRes = await apiFetch('/admin_urlmd_get_links.php');
+          const urlJson = await urlRes.json();
+          if (urlJson.success) {
+            setUrlLinks(urlJson.data || []);
+          }
         }
 
         const settingsRes = await apiFetch("/system_settings.php");
@@ -175,6 +196,8 @@ function SuperAdminDashboard() {
                   ? "Custom Domains"
                   : currentView === "moderation"
                     ? "QR Code Moderation"
+                    : currentView === "url-moderation"
+                      ? "URLMD Moderation"
                     : currentView === "system"
                       ? "System Controls"
                       : currentView === "audit"
@@ -194,6 +217,8 @@ function SuperAdminDashboard() {
                   ? "Monitor and moderate custom domains."
                   : currentView === "moderation"
                     ? "Review, audit, and ban suspicious links."
+                    : currentView === "url-moderation"
+                      ? "Review and moderate URL short links."
                     : currentView === "system"
                       ? "Advanced system configuration."
                       : currentView === "audit"
@@ -230,6 +255,13 @@ function SuperAdminDashboard() {
           onToggleStatus={(id: number, action: "ban" | "activate" | "approve" | "approve_request" | "deny_request") =>
             handleAction("admin_moderate.php", { qr_id: id, action })
           }
+        />
+      )}
+
+      {currentView === 'url-moderation' && (
+        <UrlModerationTable
+          links={urlLinks}
+          onAction={(id, action) => handleAction('admin_urlmd_moderate.php', { id, action })}
         />
       )}
 

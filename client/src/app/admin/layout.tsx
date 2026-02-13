@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
-  Users, ShieldAlert, LogOut, BarChart3, Link2
+  Users, ShieldAlert, LogOut, BarChart3, Link2, Globe
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -183,6 +183,28 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           >
             <Link2 size={18} className={currentView === "url-moderation" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             URL Moderation
+          </Link>
+
+          <Link
+            href="/admin?view=domains"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "domains"
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <Globe size={18} className={currentView === "domains" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            Domain Management
+          </Link>
+
+          <Link
+            href="/admin?view=teams"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "teams"
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <Users size={18} className={currentView === "teams" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            Team Management
           </Link>
         </nav>
 

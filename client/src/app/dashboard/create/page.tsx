@@ -17,6 +17,8 @@ type QrType = "url" | "vcard" | "bio" | "wifi";
 export default function CreateQRPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const linkedUrlIdParam = Number(searchParams.get("linkedUrlId") || "0");
+    const isLockedLinkedUrl = searchParams.get("lockLinkedUrl") === "1" && linkedUrlIdParam > 0;
     const [loading, setLoading] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
     const [presetApplied, setPresetApplied] = useState(false);
@@ -65,6 +67,22 @@ export default function CreateQRPage() {
     useEffect(() => {
         if (presetApplied) return;
 
+        if (isLockedLinkedUrl) {
+            setQrType("url");
+            setLinkMode("existing");
+            setSelectedLinkId(linkedUrlIdParam);
+            setPresetApplied(true);
+            return;
+        }
+
+        const withQr = searchParams.get("withQr");
+        if (withQr === "1") {
+            setQrType("url");
+            setLinkMode("create");
+            setPresetApplied(true);
+            return;
+        }
+
         const mode = searchParams.get("mode");
         if (mode === "smart") {
             setQrType("url");
@@ -81,7 +99,20 @@ export default function CreateQRPage() {
         }
 
         setPresetApplied(true);
-    }, [presetApplied, searchParams]);
+    }, [isLockedLinkedUrl, linkedUrlIdParam, presetApplied, searchParams]);
+
+    useEffect(() => {
+        if (!isLockedLinkedUrl) return;
+        if (availableLinks.length === 0) return;
+
+        const lockedLink = availableLinks.find((link) => link.id === linkedUrlIdParam);
+        if (!lockedLink) return;
+
+        setQrType("url");
+        setLinkMode("existing");
+        setSelectedLinkId(lockedLink.id);
+        setUrl(lockedLink.destination_url || "");
+    }, [availableLinks, isLockedLinkedUrl, linkedUrlIdParam]);
 
     // Helper for QR Content Preview
     const getQrValueForPreview = () => {
@@ -318,7 +349,18 @@ export default function CreateQRPage() {
                         {qrType === 'url' && (
                             <div className="space-y-4">
                                 <label className="block text-sm font-semibold text-foreground mb-2">Destination URL</label>
-                                <input type="url" placeholder="https://example.com" value={url} onChange={(e) => setUrl(e.target.value)} className="w-full p-3 bg-muted/50 border border-border rounded-xl outline-none focus:border-primary text-foreground placeholder:text-muted-foreground" />
+                                <input
+                                    type="url"
+                                    placeholder="https://example.com"
+                                    value={url}
+                                    onChange={(e) => setUrl(e.target.value)}
+                                    disabled={isLockedLinkedUrl}
+                                    className="w-full p-3 bg-muted/50 border border-border rounded-xl outline-none focus:border-primary text-foreground placeholder:text-muted-foreground disabled:opacity-70 disabled:cursor-not-allowed"
+                                />
+
+                                {isLockedLinkedUrl ? (
+                                    <p className="text-xs text-muted-foreground">Linked short URL is pre-selected and locked for this QR.</p>
+                                ) : null}
 
                                 <div className="border border-border rounded-xl p-4 bg-background/40 space-y-3">
                                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Short Link Options</p>
@@ -327,6 +369,7 @@ export default function CreateQRPage() {
                                         <button
                                             type="button"
                                             onClick={() => { setLinkMode("none"); setSelectedLinkId(null); }}
+                                            disabled={isLockedLinkedUrl}
                                             className={`h-9 rounded-lg border text-xs font-bold ${linkMode === "none" ? "border-primary text-primary bg-primary/10" : "border-border text-muted-foreground hover:bg-muted"}`}
                                         >
                                             No managed link
@@ -334,6 +377,7 @@ export default function CreateQRPage() {
                                         <button
                                             type="button"
                                             onClick={() => setLinkMode("existing")}
+                                            disabled={isLockedLinkedUrl}
                                             className={`h-9 rounded-lg border text-xs font-bold ${linkMode === "existing" ? "border-primary text-primary bg-primary/10" : "border-border text-muted-foreground hover:bg-muted"}`}
                                         >
                                             Attach existing
@@ -341,6 +385,7 @@ export default function CreateQRPage() {
                                         <button
                                             type="button"
                                             onClick={() => setLinkMode("create")}
+                                            disabled={isLockedLinkedUrl}
                                             className={`h-9 rounded-lg border text-xs font-bold ${linkMode === "create" ? "border-primary text-primary bg-primary/10" : "border-border text-muted-foreground hover:bg-muted"}`}
                                         >
                                             Track this QR with URLMD
@@ -351,7 +396,8 @@ export default function CreateQRPage() {
                                         <select
                                             value={selectedLinkId || ""}
                                             onChange={(e) => setSelectedLinkId(Number(e.target.value) || null)}
-                                            className="w-full p-3 bg-muted/50 border border-border rounded-xl outline-none focus:border-primary text-foreground"
+                                            disabled={isLockedLinkedUrl}
+                                            className="w-full p-3 bg-muted/50 border border-border rounded-xl outline-none focus:border-primary text-foreground disabled:opacity-70 disabled:cursor-not-allowed"
                                         >
                                             <option value="">Select URLMD link</option>
                                             {availableLinks.map((link) => (

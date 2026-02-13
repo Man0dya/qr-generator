@@ -47,6 +47,26 @@ try {
     $deviceStmt->execute([':id' => $linkId]);
     $devices = $deviceStmt->fetchAll(PDO::FETCH_ASSOC);
 
+    $osStmt = $conn->prepare(
+        "SELECT COALESCE(os, 'Unknown') AS name, COUNT(*) AS value
+         FROM url_clicks
+         WHERE url_link_id = :id
+         GROUP BY COALESCE(os, 'Unknown')
+         ORDER BY value DESC"
+    );
+    $osStmt->execute([':id' => $linkId]);
+    $os = $osStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $browserStmt = $conn->prepare(
+        "SELECT COALESCE(browser, 'Unknown') AS name, COUNT(*) AS value
+         FROM url_clicks
+         WHERE url_link_id = :id
+         GROUP BY COALESCE(browser, 'Unknown')
+         ORDER BY value DESC"
+    );
+    $browserStmt->execute([':id' => $linkId]);
+    $browsers = $browserStmt->fetchAll(PDO::FETCH_ASSOC);
+
     $countryStmt = $conn->prepare(
         "SELECT COALESCE(country, 'Unknown') AS name, COUNT(*) AS value
          FROM url_clicks
@@ -86,6 +106,14 @@ try {
     $summaryStmt->execute([':id' => $linkId]);
     $summary = $summaryStmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
+    // Keep parity with QR analytics page demographics block (estimated/mock)
+    $ageGroups = [
+        ['name' => '18-24', 'value' => rand(10, 40)],
+        ['name' => '25-34', 'value' => rand(20, 50)],
+        ['name' => '35-44', 'value' => rand(5, 20)],
+        ['name' => '45+', 'value' => rand(1, 10)],
+    ];
+
     json_response([
         'success' => true,
         'link' => $link,
@@ -93,8 +121,11 @@ try {
         'charts' => [
             'timeline' => $timeline,
             'devices' => $devices,
+            'os' => $os,
+            'browsers' => $browsers,
             'countries' => $countries,
             'referrers' => $referrers,
+            'age_groups' => $ageGroups,
         ]
     ]);
 } catch (Exception $e) {

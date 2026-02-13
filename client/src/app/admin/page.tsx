@@ -11,6 +11,8 @@ import UsersTable from "./_components/UsersTable";
 import ModerationTable from "./_components/ModerationTable";
 import UserQrsView from "./_components/UserQrsView";
 import UrlModerationTable from "./_components/UrlModerationTable";
+import DomainsModerationTable from "./_components/DomainsModerationTable";
+import TeamsManagementTable from "./_components/TeamsManagementTable";
 
 type UserRole = "user" | "admin" | "super_admin";
 type AuthUser = { id?: number; email?: string; role?: UserRole };
@@ -65,6 +67,26 @@ type AdminUrlRow = {
   flag_reason?: string | null;
 };
 
+type AdminDomainRow = {
+  id: number;
+  user_id: number;
+  domain: string;
+  status: "active" | "pending" | "invalid";
+  created_at: string;
+  user_email?: string;
+  user_name?: string;
+};
+
+type AdminTeamRow = {
+  id: number;
+  owner_id: number;
+  name: string;
+  created_at: string;
+  owner_email?: string;
+  owner_name?: string;
+  member_count: number | string;
+};
+
 export default function AdminDashboardPage() {
   return (
     <Suspense
@@ -94,6 +116,8 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [urlLinks, setUrlLinks] = useState<AdminUrlRow[]>([]);
+  const [domains, setDomains] = useState<AdminDomainRow[]>([]);
+  const [teams, setTeams] = useState<AdminTeamRow[]>([]);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}") as AuthUser;
@@ -130,6 +154,22 @@ function AdminDashboard() {
           const urlJson = await urlRes.json();
           if (urlJson.success) {
             setUrlLinks(urlJson.data || []);
+          }
+        }
+
+        if (currentView === 'domains') {
+          const domainsRes = await apiFetch('/admin_get_domains.php');
+          const domainsJson = await domainsRes.json();
+          if (domainsJson.success) {
+            setDomains(domainsJson.data || []);
+          }
+        }
+
+        if (currentView === 'teams') {
+          const teamsRes = await apiFetch('/admin_get_teams.php');
+          const teamsJson = await teamsRes.json();
+          if (teamsJson.success) {
+            setTeams(teamsJson.data || []);
           }
         }
 
@@ -183,6 +223,8 @@ function AdminDashboard() {
             currentView === 'users' ? 'User Management' :
               currentView === 'moderation' ? 'QR Code Moderation' :
                 currentView === 'url-moderation' ? 'URLMD Moderation' :
+                currentView === 'domains' ? 'Domain Management' :
+                currentView === 'teams' ? 'Team Management' :
                 currentView === 'user-qrs' ? 'User QR Codes' : 'System Controls'}
         </h1>
         <p className="text-muted-foreground mt-2">
@@ -190,6 +232,8 @@ function AdminDashboard() {
             currentView === 'users' ? 'Manage registered users and permissions.' :
               currentView === 'moderation' ? 'Review, audit, and ban suspicious links.' :
                 currentView === 'url-moderation' ? 'Review and moderate URL short links.' :
+                currentView === 'domains' ? 'Review and moderate user custom domains.' :
+                currentView === 'teams' ? 'Review and manage team workspaces.' :
                 currentView === 'user-qrs' ? 'View QR codes created by a specific user.' : 'Advanced system configuration.'}
         </p>
       </div>
@@ -231,6 +275,20 @@ function AdminDashboard() {
         <UrlModerationTable
           links={urlLinks}
           onAction={(id, action) => handleAction('admin_urlmd_moderate.php', { id, action })}
+        />
+      )}
+
+      {currentView === 'domains' && (
+        <DomainsModerationTable
+          domains={domains}
+          onAction={(id, action) => handleAction('admin_domain_moderate.php', { id, action })}
+        />
+      )}
+
+      {currentView === 'teams' && (
+        <TeamsManagementTable
+          teams={teams}
+          onAction={(id, action) => handleAction('admin_team_moderate.php', { id, action })}
         />
       )}
 

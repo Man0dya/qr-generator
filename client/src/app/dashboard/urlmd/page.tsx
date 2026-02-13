@@ -1,28 +1,28 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { BarChart2, Link2, Plus, Search, Trash2 } from "lucide-react";
+import { BarChart2, Edit, Link2, Plus, Search, Trash2 } from "lucide-react";
 import {
   buildShortUrl,
   type UrlLink,
-  urlmdCreateLink,
   urlmdDeleteLink,
   urlmdGetLinks,
   urlmdUpdateLink,
 } from "@/lib/urlmd";
+import { apiFetch } from "@/lib/api";
 
 export default function UrlmdPage() {
+  const searchParams = useSearchParams();
   const [links, setLinks] = useState<UrlLink[]>([]);
+  const [linkedUrlIds, setLinkedUrlIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [statusTab, setStatusTab] = useState<"all" | "active" | "paused" | "expired" | "blocked">("all");
-
-  const [destinationUrl, setDestinationUrl] = useState("");
-  const [shortCode, setShortCode] = useState("");
-  const [title, setTitle] = useState("");
-  const [redirectType, setRedirectType] = useState<"301" | "302">("302");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const assetView = searchParams.get("view") === "with-qr" ? "with-qr" : "all";
 
   const loadLinks = useCallback(async () => {
     setLoading(true);
@@ -30,6 +30,17 @@ export default function UrlmdPage() {
       const data = await urlmdGetLinks({ status: statusTab, q: query.trim() });
       if (data.success) {
         setLinks(data.data || []);
+      }
+
+      const qrsRes = await apiFetch(`/get_dashboard_data.php`);
+      const qrsData = await qrsRes.json();
+      if (qrsData?.success) {
+        const ids = new Set<number>();
+        for (const row of qrsData.data || []) {
+          const linkId = Number(row?.url_link_id || 0);
+          if (linkId > 0) ids.add(linkId);
+        }
+        setLinkedUrlIds(ids);
       }
     } catch {
       // no-op
@@ -44,38 +55,38 @@ export default function UrlmdPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return links;
-    return links.filter((link) => {
+    let list = links;
+
+    if (assetView === "with-qr") {
+      list = list.filter((link) => linkedUrlIds.has(link.id));
+    } else {
+      list = list.filter((link) => !linkedUrlIds.has(link.id));
+    }
+
+    if (!q) return list;
+    return list.filter((link) => {
       const hay = `${link.short_code} ${link.destination_url} ${link.title || ""}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [links, query]);
+  }, [assetView, linkedUrlIds, links, query]);
 
-  const onCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!destinationUrl.trim()) return;
-    setSaving(true);
-    try {
-      const data = await urlmdCreateLink({
-        destination_url: destinationUrl.trim(),
-        short_code: shortCode.trim() || undefined,
-        title: title.trim() || undefined,
-        redirect_type: redirectType,
-      });
-      if (!data.success) {
-        alert(data.error || "Failed to create link");
-        return;
-      }
-      setDestinationUrl("");
-      setShortCode("");
-      setTitle("");
-      await loadLinks();
-    } catch {
-      alert("Network error");
-    } finally {
-      setSaving(false);
-    }
-  };
+  const pageCount = useMemo(() => Math.max(1, Math.ceil(filtered.length / pageSize)), [filtered.length]);
+  const safePage = Math.min(page, pageCount);
+  const pagedLinks = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, safePage]);
+
+  const rangeLabel = useMemo(() => {
+    if (filtered.length === 0) return "0";
+    const start = (safePage - 1) * pageSize + 1;
+    const end = Math.min(filtered.length, safePage * pageSize);
+    return `${start}-${end} of ${filtered.length}`;
+  }, [filtered.length, safePage]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [assetView, query, statusTab]);
 
   const onDelete = async (id: number) => {
     if (!confirm("Delete this short link?")) return;
@@ -101,56 +112,24 @@ export default function UrlmdPage() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">URLMD</h1>
-          <p className="text-muted-foreground mt-1">Uniform Resource Locator Management Dashboard</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            {assetView === "with-qr" ? "Short Links with QR" : "Short Links"}
+          </h1>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Assets / {assetView === "with-qr" ? "Short Links with QR" : "Short Links"}</p>
+          <p className="text-muted-foreground mt-1">
+            {assetView === "with-qr"
+              ? "Links that are already connected to one or more QR assets."
+              : "Uniform Resource Locator Management Dashboard"}
+          </p>
         </div>
+
+        <Link
+          href="/dashboard/urlmd/create"
+          className="h-10 px-4 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 inline-flex items-center gap-2"
+        >
+          <Plus size={16} /> Create Short Link
+        </Link>
       </div>
-
-      <form onSubmit={onCreate} className="bg-card border border-border rounded-2xl p-5 space-y-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-          <Plus size={16} /> Create short URL
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-          <input
-            type="url"
-            required
-            value={destinationUrl}
-            onChange={(e) => setDestinationUrl(e.target.value)}
-            placeholder="https://destination.example.com"
-            className="lg:col-span-2 h-10 px-3 bg-background border border-border rounded-lg outline-none focus:border-primary"
-          />
-          <input
-            value={shortCode}
-            onChange={(e) => setShortCode(e.target.value)}
-            placeholder="custom code (optional)"
-            className="h-10 px-3 bg-background border border-border rounded-lg outline-none focus:border-primary"
-          />
-          <select
-            value={redirectType}
-            onChange={(e) => setRedirectType(e.target.value as "301" | "302")}
-            className="h-10 px-3 bg-background border border-border rounded-lg outline-none focus:border-primary"
-          >
-            <option value="302">302 (Temporary)</option>
-            <option value="301">301 (Permanent)</option>
-          </select>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Optional title"
-            className="flex-1 h-10 px-3 bg-background border border-border rounded-lg outline-none focus:border-primary"
-          />
-          <button
-            disabled={saving}
-            className="h-10 px-4 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-70"
-          >
-            {saving ? "Creating..." : "Create"}
-          </button>
-        </div>
-      </form>
 
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
         <div className="p-4 border-b border-border bg-muted/30 flex flex-col lg:flex-row lg:items-center gap-3 lg:justify-between">
@@ -187,16 +166,19 @@ export default function UrlmdPage() {
             >
               Filter
             </button>
+            <span className="text-xs text-muted-foreground ml-1">Showing {rangeLabel}</span>
           </div>
         </div>
 
         {loading ? (
           <div className="p-6 text-sm text-muted-foreground">Loading links...</div>
         ) : filtered.length === 0 ? (
-          <div className="p-6 text-sm text-muted-foreground">No links found.</div>
+          <div className="p-6 text-sm text-muted-foreground">
+            {assetView === "with-qr" ? "No short links with QR found." : "No standalone short links found."}
+          </div>
         ) : (
           <div className="divide-y divide-border">
-            {filtered.map((link) => (
+            {pagedLinks.map((link) => (
               <div key={link.id} className="p-4 flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -215,6 +197,12 @@ export default function UrlmdPage() {
                       className="h-8 px-3 text-xs rounded border border-border hover:bg-muted inline-flex items-center gap-1"
                     >
                       <BarChart2 size={14} /> Analytics
+                    </Link>
+                    <Link
+                      href={`/dashboard/urlmd/edit/${link.id}`}
+                      className="h-8 px-3 text-xs rounded border border-border hover:bg-muted inline-flex items-center gap-1"
+                    >
+                      <Edit size={14} /> Edit
                     </Link>
                     <button
                       onClick={() => onTogglePause(link)}
@@ -240,6 +228,28 @@ export default function UrlmdPage() {
             ))}
           </div>
         )}
+
+        {filtered.length > 0 ? (
+          <div className="p-4 border-t border-border flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+              className="h-9 px-3 rounded-lg border border-border text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Prev
+            </button>
+            <span className="text-sm text-muted-foreground">Page {safePage} / {pageCount}</span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+              disabled={safePage >= pageCount}
+              className="h-9 px-3 rounded-lg border border-border text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );

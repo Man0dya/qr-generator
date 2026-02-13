@@ -29,6 +29,7 @@ $user_id = $user['id'];
 try {
     $hasFlagColumns = column_exists($conn, 'qr_codes', 'is_flagged') && column_exists($conn, 'qr_codes', 'flag_reason');
     $hasApprovalColumns = column_exists($conn, 'qr_codes', 'approval_request_status');
+    $hasUrlLinkColumn = column_exists($conn, 'qr_codes', 'url_link_id');
 
     $flagSelect = $hasFlagColumns
         ? "COALESCE(q.is_flagged, 0) AS is_flagged, q.flag_reason,"
@@ -46,6 +47,10 @@ try {
             NULL AS approval_resolved_at,
             NULL AS approval_resolved_by,";
 
+    $urlLinkSelect = $hasUrlLinkColumn
+        ? "q.url_link_id,"
+        : "NULL AS url_link_id,";
+
     $sql = "
         SELECT 
             q.id, 
@@ -54,6 +59,7 @@ try {
             q.status, 
             q.created_at,
             q.design_config,
+            {$urlLinkSelect}
             {$flagSelect}
             {$approvalSelect}
             (

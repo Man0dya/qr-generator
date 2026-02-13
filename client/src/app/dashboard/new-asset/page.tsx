@@ -42,19 +42,20 @@ export default function NewAssetPage() {
         {options.map((option) => {
           const Icon = option.icon;
           return (
-            <div key={option.key} className="bg-card p-6 rounded-2xl border border-border shadow-sm flex flex-col">
+            <Link
+              key={option.key}
+              href={option.href}
+              className="bg-card p-6 rounded-2xl border border-border shadow-sm flex flex-col hover:border-primary/30 hover:shadow-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            >
               <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
                 <Icon size={22} />
               </div>
               <h2 className="text-lg font-bold text-card-foreground mb-2">{option.title}</h2>
               <p className="text-sm text-muted-foreground mb-6 flex-1">{option.description}</p>
-              <Link
-                href={option.href}
-                className="h-11 rounded-xl bg-primary text-primary-foreground px-4 font-medium inline-flex items-center justify-center gap-2 hover:bg-primary/90 transition"
-              >
+              <span className="h-11 rounded-xl bg-primary text-primary-foreground px-4 font-medium inline-flex items-center justify-center gap-2 hover:bg-primary/90 transition">
                 {option.cta} <ArrowRight size={16} />
-              </Link>
-            </div>
+              </span>
+            </Link>
           );
         })}
       </div>

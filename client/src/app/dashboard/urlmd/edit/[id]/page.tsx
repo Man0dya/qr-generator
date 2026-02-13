@@ -1,58 +1,92 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, CheckCircle2, Link2, Save } from "lucide-react";
-import { urlmdCreateLink } from "@/lib/urlmd";
+import { type UrlLink, urlmdGetLinks, urlmdUpdateLink } from "@/lib/urlmd";
 
-export default function UrlmdCreatePage() {
+export default function UrlmdEditPage() {
+  const params = useParams();
   const router = useRouter();
-  const backHref = "/dashboard/urlmd";
-  const [destinationUrl, setDestinationUrl] = useState("");
-  const [shortCode, setShortCode] = useState("");
-  const [title, setTitle] = useState("");
-  const [redirectType, setRedirectType] = useState<"301" | "302">("302");
+  const id = Number(params.id);
+
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const onCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!destinationUrl.trim()) return;
+  const [shortCode, setShortCode] = useState("");
+  const [destinationUrl, setDestinationUrl] = useState("");
+  const [title, setTitle] = useState("");
+  const [redirectType, setRedirectType] = useState<"301" | "302">("302");
+  const [status, setStatus] = useState<"active" | "paused" | "expired" | "blocked">("active");
 
-    setSaving(true);
-    try {
-      const data = await urlmdCreateLink({
-        destination_url: destinationUrl.trim(),
-        short_code: shortCode.trim() || undefined,
-        title: title.trim() || undefined,
-        redirect_type: redirectType,
-      });
-
-      if (!data.success) {
-        alert(data.error || "Failed to create short link");
+  useEffect(() => {
+    const run = async () => {
+      if (!id) {
+        setLoading(false);
         return;
       }
 
-      const createdId = data?.data?.id;
-      if (createdId) {
-        const wantsQr = window.confirm("Short link created. Do you also want to create a QR for this short link?");
-        if (wantsQr) {
-          router.push(`/dashboard/create?linkedUrlId=${createdId}&lockLinkedUrl=1`);
+      try {
+        const data = await urlmdGetLinks({ status: "all" });
+        if (!data?.success) {
+          setLoading(false);
           return;
         }
+
+        const link: UrlLink | undefined = (data.data || []).find((row: UrlLink) => Number(row.id) === id);
+        if (!link) {
+          setLoading(false);
+          return;
+        }
+
+        setShortCode(link.short_code || "");
+        setDestinationUrl(link.destination_url || "");
+        setTitle(link.title || "");
+        setRedirectType((link.redirect_type || "302") as "301" | "302");
+        setStatus((link.status || "active") as "active" | "paused" | "expired" | "blocked");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    run();
+  }, [id]);
+
+  const onSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+    if (!destinationUrl.trim()) {
+      alert("Destination URL is required.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const data = await urlmdUpdateLink({
+        id,
+        destination_url: destinationUrl.trim(),
+        title: title.trim() || undefined,
+        redirect_type: redirectType,
+        status,
+      });
+
+      if (!data?.success) {
+        alert(data?.error || "Failed to update short link.");
+        return;
       }
 
       router.push("/dashboard/urlmd");
     } catch {
-      alert("Network error");
+      alert("Network error.");
     } finally {
       setSaving(false);
     }
   };
 
-  const previewCode = shortCode.trim() || "auto-generated";
-  const previewTitle = title.trim() || "New Short Link";
-  const previewDestination = destinationUrl.trim() || "https://destination.example.com";
+  if (loading) {
+    return <div className="text-sm text-muted-foreground">Loading short link...</div>;
+  }
 
   return (
     <div className="max-w-6xl mx-auto pb-20">
@@ -60,22 +94,22 @@ export default function UrlmdCreatePage() {
         <div>
           <button
             type="button"
-            onClick={() => router.push(backHref)}
+            onClick={() => router.push("/dashboard/urlmd")}
             className="flex items-center text-muted-foreground hover:text-primary transition mb-2"
           >
             <ArrowLeft size={16} className="mr-1" /> Back to Short Links
           </button>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Assets / Short Links / Create</p>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight mt-1">New Short Link</h1>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Assets / Short Links / Edit</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight mt-1">Edit Short Link</h1>
         </div>
 
         <button
           type="submit"
-          form="short-link-create-form"
+          form="short-link-edit-form"
           disabled={saving}
           className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-50"
         >
-          <Save size={20} /> {saving ? "Creating..." : "Create Short Link"}
+          <Save size={20} /> {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
 
@@ -83,10 +117,10 @@ export default function UrlmdCreatePage() {
         <div className="lg:col-span-7 space-y-6">
           <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm text-foreground flex items-start gap-2">
             <CheckCircle2 size={16} className="mt-0.5 text-primary" />
-            After saving this short link, you can choose whether to continue and create a QR for this URL.
+            Update destination, redirect mode, and status while keeping your existing short code live.
           </div>
 
-          <form id="short-link-create-form" onSubmit={onCreate} className="bg-card border border-border rounded-2xl p-6 space-y-5">
+          <form id="short-link-edit-form" onSubmit={onSave} className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Destination URL</label>
               <input
@@ -94,20 +128,18 @@ export default function UrlmdCreatePage() {
                 required
                 value={destinationUrl}
                 onChange={(e) => setDestinationUrl(e.target.value)}
-                placeholder="https://destination.example.com"
                 className="w-full h-12 px-3 bg-muted/50 border border-border rounded-xl outline-none focus:border-primary text-foreground"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Custom Code</label>
+                <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Title</label>
                 <div className="relative">
                   <Link2 size={14} className="absolute left-3 top-4 text-muted-foreground" />
                   <input
-                    value={shortCode}
-                    onChange={(e) => setShortCode(e.target.value)}
-                    placeholder="campaign-2026"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     className="w-full h-12 pl-8 pr-3 bg-muted/50 border border-border rounded-xl outline-none focus:border-primary text-foreground"
                   />
                 </div>
@@ -127,13 +159,17 @@ export default function UrlmdCreatePage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Title</label>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Spring Campaign"
+              <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as "active" | "paused" | "expired" | "blocked")}
                 className="w-full h-12 px-3 bg-muted/50 border border-border rounded-xl outline-none focus:border-primary text-foreground"
-              />
+              >
+                <option value="active">Active</option>
+                <option value="paused">Paused</option>
+                <option value="expired">Expired</option>
+                <option value="blocked">Blocked</option>
+              </select>
             </div>
           </form>
         </div>
@@ -147,28 +183,28 @@ export default function UrlmdCreatePage() {
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Link Title</p>
-                  <p className="text-sm font-bold text-foreground mt-1">{previewTitle}</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Short URL</p>
+                  <p className="text-sm text-primary mt-1 break-all">/{shortCode || "-"}</p>
                 </div>
 
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Short URL</p>
-                  <p className="text-sm text-primary mt-1 break-all">/{previewCode}</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Link Title</p>
+                  <p className="text-sm font-bold text-foreground mt-1">{title || "Untitled"}</p>
                 </div>
 
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Destination</p>
-                  <p className="text-sm text-foreground mt-1 break-all">{previewDestination}</p>
+                  <p className="text-sm text-foreground mt-1 break-all">{destinationUrl || "-"}</p>
                 </div>
 
                 <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
                   <span>Redirect: {redirectType}</span>
-                  <span>Flow: Short Link</span>
+                  <span>Status: {status}</span>
                 </div>
               </div>
 
               <div className="mt-8">
-                <Link href={backHref} className="h-11 px-4 border border-border rounded-xl text-sm font-medium text-foreground hover:bg-muted transition inline-flex items-center gap-2">
+                <Link href="/dashboard/urlmd" className="h-11 px-4 border border-border rounded-xl text-sm font-medium text-foreground hover:bg-muted transition inline-flex items-center gap-2">
                   <ArrowLeft size={14} /> Back to list
                 </Link>
               </div>

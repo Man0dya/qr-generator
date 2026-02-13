@@ -14,6 +14,7 @@ import {
   ScrollText,
   Globe,
   Briefcase,
+  Link2,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/Logo";
@@ -216,6 +217,17 @@ function SuperAdminLayoutInner({ children }: { children: React.ReactNode }) {
           >
             <ShieldAlert size={18} className={currentView === "moderation" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             QR Moderation
+          </Link>
+
+          <Link
+            href="/super-admin?view=url-moderation"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "url-moderation"
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <Link2 size={18} className={currentView === "url-moderation" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            URL Moderation
           </Link>
 
           <Link

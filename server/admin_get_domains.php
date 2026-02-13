@@ -3,12 +3,7 @@
 require 'db.php';
 require 'utils.php';
 
-$user = require_auth();
-
-if ($user['role'] !== 'super_admin') {
-    json_response(['error' => 'Access denied'], 403);
-    exit;
-}
+$user = require_role('admin');
 
 try {
     $stmt = $conn->prepare("
