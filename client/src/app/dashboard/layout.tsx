@@ -92,30 +92,19 @@ export default function DashboardLayout({
           </Link>
 
           <Link
-            href="/dashboard/urlmd/create"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/urlmd/create'
+            href="/dashboard/new-asset"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/new-asset'
               ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <PlusCircle size={18} className={pathname === '/dashboard/urlmd/create' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            New Short Link
+            <PlusCircle size={18} className={pathname === '/dashboard/new-asset' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            New Asset
           </Link>
 
           <div className="pt-3 pb-1">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 opacity-70">QR Codes</p>
           </div>
-
-          <Link
-            href="/dashboard/create"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/create'
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-          >
-            <PlusCircle size={18} className={pathname === '/dashboard/create' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            Create QR
-          </Link>
 
           <Link
             href="/dashboard/qrs"

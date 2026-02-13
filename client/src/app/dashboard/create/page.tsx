@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
     ArrowLeft, Download, Palette, Image as ImageIcon,
-    Settings, Save, CheckCircle2, AlertTriangle, Loader2, ChevronLeft, ChevronRight,
-    Link as LinkIcon, Contact, AppWindow, Wifi, FileText
+    Save, CheckCircle2, AlertTriangle, Loader2, ChevronLeft, ChevronRight,
+    Link as LinkIcon, Contact, Wifi, FileText
 } from "lucide-react";
 import StyledQrCode from "@/app/dashboard/_components/StyledQrCode";
 import { buildQrCodeStylingOptions, QR_STYLE_PRESETS, type QrStylePreset } from "@/lib/qrStyling";
@@ -16,8 +16,10 @@ type QrType = "url" | "vcard" | "bio" | "wifi";
 
 export default function CreateQRPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [presetApplied, setPresetApplied] = useState(false);
 
     // Dynamic Data for Types
     const [qrType, setQrType] = useState<QrType>("url");
@@ -59,6 +61,27 @@ export default function CreateQRPage() {
             })
             .catch(() => { });
     }, []);
+
+    useEffect(() => {
+        if (presetApplied) return;
+
+        const mode = searchParams.get("mode");
+        if (mode === "smart") {
+            setQrType("url");
+            setLinkMode("create");
+            setPresetApplied(true);
+            return;
+        }
+
+        if (mode === "static") {
+            setQrType("wifi");
+            setLinkMode("none");
+            setPresetApplied(true);
+            return;
+        }
+
+        setPresetApplied(true);
+    }, [presetApplied, searchParams]);
 
     // Helper for QR Content Preview
     const getQrValueForPreview = () => {
@@ -261,6 +284,7 @@ export default function CreateQRPage() {
                             { id: 'url', icon: LinkIcon, label: 'Website' },
                             { id: 'vcard', icon: Contact, label: 'vCard' },
                             { id: 'bio', icon: FileText, label: 'Bio Page' },
+                            { id: 'wifi', icon: Wifi, label: 'WiFi' },
                         ].map((t) => (
                             <button
                                 key={t.id}
@@ -364,6 +388,33 @@ export default function CreateQRPage() {
                                     </div>
                                 ))}
                                 <button onClick={() => setBio({ ...bio, links: [...bio.links, { label: "", url: "" }] })} className="text-sm text-primary font-bold">+ Add Link</button>
+                            </div>
+                        )}
+
+                        {qrType === 'wifi' && (
+                            <div className="space-y-4">
+                                <label className="block text-sm font-semibold text-foreground mb-2">WiFi Network</label>
+                                <input
+                                    placeholder="SSID"
+                                    value={wifi.ssid}
+                                    onChange={e => setWifi({ ...wifi, ssid: e.target.value })}
+                                    className="p-3 bg-muted/50 border border-border rounded-xl w-full text-foreground placeholder:text-muted-foreground"
+                                />
+                                <input
+                                    placeholder="Password"
+                                    value={wifi.password}
+                                    onChange={e => setWifi({ ...wifi, password: e.target.value })}
+                                    className="p-3 bg-muted/50 border border-border rounded-xl w-full text-foreground placeholder:text-muted-foreground"
+                                />
+                                <select
+                                    value={wifi.encryption}
+                                    onChange={(e) => setWifi({ ...wifi, encryption: e.target.value })}
+                                    className="w-full p-3 bg-muted/50 border border-border rounded-xl outline-none focus:border-primary text-foreground"
+                                >
+                                    <option value="WPA">WPA/WPA2</option>
+                                    <option value="WEP">WEP</option>
+                                    <option value="nopass">No Password</option>
+                                </select>
                             </div>
                         )}
                     </div>

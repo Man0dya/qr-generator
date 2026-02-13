@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useQRCode } from "next-qrcode";
 import {
   ArrowRight, BarChart2, Zap,
-  Globe, Layers, ChevronRight, Shield, RefreshCw, LayoutTemplate
+  Globe, Layers, ChevronRight, Shield, RefreshCw, LayoutTemplate, Link2, QrCode
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/Logo";
@@ -33,7 +34,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Logo className="w-8 h-8" />
-            <span className="text-lg font-bold tracking-tight">QR Generator</span>
+            <span className="text-lg font-bold tracking-tight">URLMD</span>
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
@@ -71,24 +72,24 @@ export default function LandingPage() {
           
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-foreground leading-tight">
-            The Professional <br />
-            <span className="text-primary">QR Infrastructure</span>
+            URLMD <br />
+            <span className="text-primary">The Complete Link Management Platform</span>
           </h1>
 
           <p className="text-2xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed">
-            Create, manage, and track dynamic QR codes with enterprise-grade reliability.
-            Ideal for marketing campaigns, inventory, and instant digital connections.
+            Create short links, track analytics, and generate QRs in one unified workspace.
+            Built for campaigns, teams, and high-volume digital journeys.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm md:text-base text-muted-foreground mb-10">
             <span className="inline-flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Dynamic links
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Create short links
             </span>
             <span className="inline-flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Custom designs
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Track analytics
             </span>
             <span className="inline-flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Analytics & teams
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Generate QRs
             </span>
           </div>
 
@@ -199,7 +200,15 @@ export default function LandingPage() {
                     }}
                   />
                   {logoSrc && (
-                    <img src={logoSrc} alt="logo" className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ width: 56, height: 56, objectFit: 'contain', borderRadius: 8 }} />
+                    <Image
+                      src={logoSrc}
+                      alt="logo"
+                      width={56}
+                      height={56}
+                      unoptimized
+                      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                      style={{ objectFit: 'contain', borderRadius: 8 }}
+                    />
                   )}
                 </div>
                 <p className="text-xs md:text-sm text-muted-foreground font-medium flex items-center gap-1.5">
@@ -215,13 +224,28 @@ export default function LandingPage() {
       <section id="features" className="py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-6">
           <div className="mb-16 md:text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground mb-4">Everything needed to scale</h2>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground mb-4">Everything needed to manage links end-to-end</h2>
             <p className="text-muted-foreground text-lg">
-              Powerful features designed for teams, marketers, and developers. Built to handle millions of scans.
+              URLMD combines short-link operations, QR delivery, and analytics in one platform.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
+            <FeatureCard
+              icon={<Link2 className="text-blue-500" size={24} />}
+              title="Create Short Links"
+              desc="Build branded short URLs for campaigns, products, and internal workflows with centralized status controls."
+            />
+            <FeatureCard
+              icon={<BarChart2 className="text-indigo-500" size={24} />}
+              title="Track Analytics"
+              desc="Measure clicks, scans, geography, and devices across links and QR assets from one dashboard."
+            />
+            <FeatureCard
+              icon={<QrCode className="text-violet-500" size={24} />}
+              title="Generate QRs"
+              desc="Design dynamic and static QRs, then route traffic through URLMD-managed short links when needed."
+            />
             <FeatureCard
               icon={<Globe className="text-blue-500" size={24} />}
               title="Global Tracking"
@@ -243,11 +267,6 @@ export default function LandingPage() {
               desc="Change the destination URL anytime, even after printing. Never reprint a QR code again."
             />
             <FeatureCard
-              icon={<BarChart2 className="text-indigo-500" size={24} />}
-              title="Deep Analytics"
-              desc="Track conversion rates, time of day, and operating systems to optimize your campaigns."
-            />
-            <FeatureCard
               icon={<Layers className="text-pink-500" size={24} />}
               title="Bulk Operations"
               desc="Generate thousands of unique QR codes in seconds via CSV upload or our robust API."
@@ -262,28 +281,28 @@ export default function LandingPage() {
           <div className="mb-16 md:text-center max-w-3xl mx-auto">
             <h2 className="text-3xl font-bold tracking-tight text-foreground mb-4">How it works</h2>
             <p className="text-muted-foreground text-lg">
-              Create a QR in minutes, then iterate without reprints. Everything stays organized in your dashboard.
+              Choose the asset type you need, launch instantly, and optimize performance with unified analytics.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 items-stretch">
             <StepCard
               step="01"
-              icon={<Zap size={22} className="text-foreground" />}
+              icon={<Link2 size={22} className="text-foreground" />}
               title="Create"
-              desc="Generate a dynamic QR code and pick a destination URL. Change it later without reprinting."
+              desc="Create a short link or QR asset and define your destination in seconds."
             />
             <StepCard
               step="02"
-              icon={<LayoutTemplate size={22} className="text-foreground" />}
-              title="Design"
-              desc="Match your brand with custom styling so scans feel trustworthy and on-brand."
+              icon={<QrCode size={22} className="text-foreground" />}
+              title="Deliver"
+              desc="Use smart QRs backed by short links, or publish static QR formats for offline use cases."
             />
             <StepCard
               step="03"
               icon={<BarChart2 size={22} className="text-foreground" />}
               title="Track"
-              desc="Understand performance with analytics, then optimize campaigns and placements."
+              desc="Monitor scans and clicks in one timeline, then iterate campaigns with confidence."
             />
           </div>
 
@@ -371,7 +390,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold tracking-tight text-foreground mb-6">Ready to get started?</h2>
           <p className="text-muted-foreground text-lg mb-10">
-            Join thousands of businesses managing their connections with QR Generator.
+            Join teams building, tracking, and scaling links with URLMD.
           </p>
           <div className="flex justify-center gap-4">
             <Link href="/register" className="h-12 px-8 rounded-xl bg-foreground text-background font-medium flex items-center gap-2 hover:bg-foreground/90 transition">
@@ -386,11 +405,11 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <Logo className="w-6 h-6" />
-            <span className="font-bold text-foreground">QR Generator</span>
+            <span className="font-bold text-foreground">URLMD</span>
           </div>
 
           <div className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} QR Generator Inc. All rights reserved.
+            &copy; {new Date().getFullYear()} URLMD Inc. All rights reserved.
           </div>
 
           <div className="flex gap-6 text-sm font-medium text-muted-foreground">
