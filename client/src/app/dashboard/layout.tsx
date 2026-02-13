@@ -76,8 +76,19 @@ export default function DashboardLayout({
             Dashboard
           </Link>
 
+          <Link
+            href="/dashboard/new-asset"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/new-asset'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <PlusCircle size={18} className={pathname === '/dashboard/new-asset' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            New Asset
+          </Link>
+
           <div className="pt-3 pb-1">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 opacity-70">Links</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 opacity-70">Assets</p>
           </div>
 
           <Link
@@ -92,21 +103,6 @@ export default function DashboardLayout({
           </Link>
 
           <Link
-            href="/dashboard/new-asset"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/new-asset'
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-          >
-            <PlusCircle size={18} className={pathname === '/dashboard/new-asset' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            New Asset
-          </Link>
-
-          <div className="pt-3 pb-1">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 opacity-70">QR Codes</p>
-          </div>
-
-          <Link
             href="/dashboard/qrs"
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/qrs'
               ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
@@ -116,6 +112,10 @@ export default function DashboardLayout({
             <QrCode size={18} className={pathname === '/dashboard/qrs' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             My QRs
           </Link>
+
+          <div className="pt-4 pb-2">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 opacity-70">Workspace</p>
+          </div>
 
           <Link
             href="/dashboard/login-history"

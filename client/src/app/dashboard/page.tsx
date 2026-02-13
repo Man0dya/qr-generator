@@ -34,6 +34,10 @@ type ActivityItem = {
   shortUrl: string;
   destination: string;
   clicks: number;
+  uniqueClicks: number;
+  status: string;
+  redirectType?: string;
+  updatedAtLabel?: string;
   createdAtMs: number;
   createdAtLabel: string;
 };
@@ -125,6 +129,8 @@ export default function DashboardPage() {
       shortUrl: `${API_BASE}/redirect.php?c=${qr.short_code}`,
       destination: String(qr.destination_url || "—"),
       clicks: Number.parseInt(String(qr.total_scans ?? "0"), 10) || 0,
+      uniqueClicks: Number.parseInt(String(qr.total_scans ?? "0"), 10) || 0,
+      status: String(qr.status || "active").toLowerCase(),
       createdAtMs: parseCreatedAt(qr.created_at),
       createdAtLabel: qr.created_at ? new Date(qr.created_at).toLocaleDateString() : "—",
     }));
@@ -137,6 +143,10 @@ export default function DashboardPage() {
       shortUrl: `${API_BASE}/redirect.php?c=${link.short_code}`,
       destination: String(link.destination_url || "—"),
       clicks: Number.parseInt(String(link.total_clicks ?? "0"), 10) || 0,
+      uniqueClicks: Number.parseInt(String(link.unique_visitors ?? "0"), 10) || 0,
+      status: String(link.status || "active").toLowerCase(),
+      redirectType: link.redirect_type,
+      updatedAtLabel: link.updated_at ? new Date(link.updated_at).toLocaleDateString() : undefined,
       createdAtMs: parseCreatedAt(link.created_at),
       createdAtLabel: link.created_at ? new Date(link.created_at).toLocaleDateString() : "—",
     }));
@@ -146,7 +156,7 @@ export default function DashboardPage() {
     if (!normalizedQuery) return combined;
 
     return combined.filter((item) => {
-      const haystack = [item.name, item.shortUrl, item.destination].join(" ").toLowerCase();
+      const haystack = [item.name, item.shortUrl, item.destination, item.status, item.type].join(" ").toLowerCase();
       return haystack.includes(normalizedQuery);
     });
   }, [normalizedQuery, qrs, urlLinks]);
@@ -256,6 +266,20 @@ export default function DashboardPage() {
                       <p className="text-sm font-semibold text-card-foreground truncate" title={item.name}>{item.name}</p>
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                         <Clock size={12} /> {item.createdAtLabel}
+                        <span className="mx-1">•</span>
+                        <span className="uppercase">{item.type}</span>
+                      </p>
+                      <p className="text-[11px] mt-1">
+                        <span className={
+                          "inline-flex items-center rounded-full px-2 py-0.5 border font-semibold uppercase " +
+                          (item.status === "active"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                            : item.status === "paused"
+                              ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                              : "bg-destructive/10 text-destructive border-destructive/20")
+                        }>
+                          {item.status}
+                        </span>
                       </p>
                     </div>
                   </div>
@@ -283,10 +307,15 @@ export default function DashboardPage() {
                   >
                     {item.destination}
                   </a>
+                  <p className="text-[11px] text-muted-foreground mt-1 truncate" title={item.redirectType ? `Redirect: ${item.redirectType}` : ""}>
+                    {item.type === "link" && item.redirectType ? `Redirect: ${item.redirectType}` : "QR Redirect"}
+                    {item.updatedAtLabel ? ` • Updated: ${item.updatedAtLabel}` : ""}
+                  </p>
                 </div>
 
                 <div className="col-span-6 md:col-span-1">
                   <p className="text-sm font-semibold text-card-foreground">{item.clicks}</p>
+                  <p className="text-[11px] text-muted-foreground">Unique: {item.uniqueClicks}</p>
                 </div>
 
                 <div className="col-span-6 md:col-span-2 flex items-center justify-end gap-2">
