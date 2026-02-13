@@ -72,13 +72,11 @@ export default function LandingPage() {
           
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-foreground leading-tight">
-            URLMD <br />
-            <span className="text-primary">The Complete Link Management Platform</span>
+            <span className="text-primary">The Complete Link & QR Management Platform</span>
           </h1>
 
           <p className="text-2xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed">
-            Create short links, track analytics, and generate QRs in one unified workspace.
-            Built for campaigns, teams, and high-volume digital journeys.
+            URLMD allows you to shorten URLs, track analytics, and generate dynamic QR codes—all from one dashboard.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm md:text-base text-muted-foreground mb-10">
@@ -233,7 +231,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard
               icon={<Link2 className="text-blue-500" size={24} />}
-              title="Create Short Links"
+              title="URL Shortening"
               desc="Build branded short URLs for campaigns, products, and internal workflows with centralized status controls."
             />
             <FeatureCard

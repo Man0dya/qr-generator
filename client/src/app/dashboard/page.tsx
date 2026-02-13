@@ -6,13 +6,15 @@ import {
   ArrowUpRight,
   BarChart2,
   Clock,
+  Edit,
   ExternalLink,
   Link2,
   Plus,
   QrCode,
+  Trash2,
 } from "lucide-react";
 import { apiFetch, API_BASE } from "@/lib/api";
-import { type UrlLink } from "@/lib/urlmd";
+import { type UrlLink, urlmdDeleteLink } from "@/lib/urlmd";
 
 type DashboardQr = {
   id: number;
@@ -32,7 +34,6 @@ type ActivityItem = {
   shortUrl: string;
   destination: string;
   clicks: number;
-  status: string;
   createdAtMs: number;
   createdAtLabel: string;
 };
@@ -75,9 +76,42 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, []);
 
+  const handleDeleteAsset = async (item: ActivityItem) => {
+    if (item.type === "qr") {
+      if (!confirm("Delete this QR code? This action cannot be undone.")) return;
+      try {
+        const res = await apiFetch("/delete_qr.php", {
+          method: "POST",
+          body: JSON.stringify({ qr_id: item.sourceId }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          alert(data.error || "Failed to delete QR code.");
+          return;
+        }
+        setQrs((prev) => prev.filter((qr) => qr.id !== item.sourceId));
+      } catch {
+        alert("Server error while deleting QR.");
+      }
+      return;
+    }
+
+    if (!confirm("Delete this short link? This action cannot be undone.")) return;
+    try {
+      const data = await urlmdDeleteLink(item.sourceId);
+      if (!data.success) {
+        alert(data.error || "Failed to delete short link.");
+        return;
+      }
+      setUrlLinks((prev) => prev.filter((link) => link.id !== item.sourceId));
+    } catch {
+      alert("Server error while deleting short link.");
+    }
+  };
+
   const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
 
-  const recentActivity = useMemo<ActivityItem[]>(() => {
+  const combinedAssets = useMemo<ActivityItem[]>(() => {
     const parseCreatedAt = (value: unknown) => {
       const ms = new Date(String(value ?? "")).getTime();
       return Number.isFinite(ms) ? ms : 0;
@@ -91,7 +125,6 @@ export default function DashboardPage() {
       shortUrl: `${API_BASE}/redirect.php?c=${qr.short_code}`,
       destination: String(qr.destination_url || "—"),
       clicks: Number.parseInt(String(qr.total_scans ?? "0"), 10) || 0,
-      status: String(qr.status || "active").toLowerCase(),
       createdAtMs: parseCreatedAt(qr.created_at),
       createdAtLabel: qr.created_at ? new Date(qr.created_at).toLocaleDateString() : "—",
     }));
@@ -104,7 +137,6 @@ export default function DashboardPage() {
       shortUrl: `${API_BASE}/redirect.php?c=${link.short_code}`,
       destination: String(link.destination_url || "—"),
       clicks: Number.parseInt(String(link.total_clicks ?? "0"), 10) || 0,
-      status: String(link.status || "active").toLowerCase(),
       createdAtMs: parseCreatedAt(link.created_at),
       createdAtLabel: link.created_at ? new Date(link.created_at).toLocaleDateString() : "—",
     }));
@@ -114,7 +146,7 @@ export default function DashboardPage() {
     if (!normalizedQuery) return combined;
 
     return combined.filter((item) => {
-      const haystack = [item.name, item.shortUrl, item.destination, item.status].join(" ").toLowerCase();
+      const haystack = [item.name, item.shortUrl, item.destination].join(" ").toLowerCase();
       return haystack.includes(normalizedQuery);
     });
   }, [normalizedQuery, qrs, urlLinks]);
@@ -192,13 +224,13 @@ export default function DashboardPage() {
           />
         </div>
 
-        {recentActivity.length === 0 ? (
+        {combinedAssets.length === 0 ? (
           <div className="text-center py-24 bg-card rounded-3xl border border-dashed border-border">
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground">
               <Link2 size={32} />
             </div>
-            <h3 className="text-lg font-bold text-card-foreground mb-2">No activity yet</h3>
-            <p className="text-muted-foreground mb-6 max-w-sm mx-auto">Create your first short link or QR asset to start tracking engagement.</p>
+            <h3 className="text-lg font-bold text-card-foreground mb-2">No links or QR codes found.</h3>
+            <p className="text-muted-foreground mb-6 max-w-sm mx-auto">No links or QR codes found. Create your first asset to get started.</p>
             <Link href="/dashboard/new-asset" className="text-primary font-medium hover:underline">
               Create your first asset &rarr;
             </Link>
@@ -206,14 +238,14 @@ export default function DashboardPage() {
         ) : (
           <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
             <div className="grid grid-cols-12 gap-3 px-4 py-3 bg-muted/40 border-b border-border text-xs font-bold uppercase tracking-wide text-muted-foreground">
-              <div className="col-span-12 md:col-span-3">Name / Title</div>
+              <div className="col-span-12 md:col-span-3">Asset Name</div>
               <div className="col-span-12 md:col-span-3">Short URL</div>
               <div className="col-span-12 md:col-span-3">Destination</div>
               <div className="col-span-6 md:col-span-1">Scans/Clicks</div>
-              <div className="col-span-6 md:col-span-2">Status</div>
+              <div className="col-span-6 md:col-span-2">Actions</div>
             </div>
 
-            {recentActivity.map((item) => (
+            {combinedAssets.map((item) => (
               <div key={item.id} className="grid grid-cols-12 gap-3 px-4 py-4 border-b border-border/70 last:border-b-0 items-center">
                 <div className="col-span-12 md:col-span-3 min-w-0">
                   <div className="flex items-start gap-2">
@@ -257,27 +289,29 @@ export default function DashboardPage() {
                   <p className="text-sm font-semibold text-card-foreground">{item.clicks}</p>
                 </div>
 
-                <div className="col-span-6 md:col-span-2 flex items-center justify-between gap-3">
-                  <span
-                    className={
-                      "text-[10px] uppercase font-bold px-2 py-1 rounded-full border " +
-                      (item.status === "active"
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                        : item.status === "paused"
-                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                          : "bg-destructive/10 text-destructive border-destructive/20")
-                    }
-                  >
-                    {item.status}
-                  </span>
-
+                <div className="col-span-6 md:col-span-2 flex items-center justify-end gap-2">
                   <Link
                     href={item.type === "qr" ? `/dashboard/analytics/${item.sourceId}` : `/dashboard/urlmd/${item.sourceId}`}
                     className="p-2 text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-lg transition border border-transparent hover:border-primary/20"
-                    title={item.type === "qr" ? "QR Analytics" : "Link Details"}
+                    title="Analytics"
                   >
-                    {item.type === "qr" ? <BarChart2 size={16} /> : <ArrowUpRight size={16} />}
+                    <BarChart2 size={16} />
                   </Link>
+                  <Link
+                    href={item.type === "qr" ? `/dashboard/edit/${item.sourceId}` : `/dashboard/urlmd/${item.sourceId}`}
+                    className="p-2 text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 rounded-lg transition border border-transparent hover:border-blue-500/20"
+                    title="Edit"
+                  >
+                    <Edit size={16} />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteAsset(item)}
+                    className="p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg transition border border-transparent hover:border-destructive/20"
+                    title="Delete"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             ))}
