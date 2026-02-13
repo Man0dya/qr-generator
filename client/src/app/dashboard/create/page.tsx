@@ -168,7 +168,7 @@ export default function CreateQRPage() {
 
             if (linkMode === "existing") {
                 if (!selectedLinkId) {
-                    alert("Select a URLMD link to attach.");
+                    alert("Select a short link to attach.");
                     setLoading(false);
                     return;
                 }
@@ -181,7 +181,7 @@ export default function CreateQRPage() {
                 });
 
                 if (!created?.success || !created?.data?.id) {
-                    alert(created?.error || "Failed to create URLMD link");
+                    alert(created?.error || "Failed to create short link");
                     setLoading(false);
                     return;
                 }
@@ -297,7 +297,7 @@ export default function CreateQRPage() {
                                 <input type="url" placeholder="https://example.com" value={url} onChange={(e) => setUrl(e.target.value)} className="w-full p-3 bg-muted/50 border border-border rounded-xl outline-none focus:border-primary text-foreground placeholder:text-muted-foreground" />
 
                                 <div className="border border-border rounded-xl p-4 bg-background/40 space-y-3">
-                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">URLMD Integration</p>
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Short Link Options</p>
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                         <button
@@ -319,7 +319,7 @@ export default function CreateQRPage() {
                                             onClick={() => setLinkMode("create")}
                                             className={`h-9 rounded-lg border text-xs font-bold ${linkMode === "create" ? "border-primary text-primary bg-primary/10" : "border-border text-muted-foreground hover:bg-muted"}`}
                                         >
-                                            Auto-create managed link
+                                            Track this QR with URLMD
                                         </button>
                                     </div>
 

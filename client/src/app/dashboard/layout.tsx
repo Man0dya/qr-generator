@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, PlusCircle, LogOut,
-  ShieldCheck, UserCog, History, Globe, Users, Upload, Terminal, Link2
+  ShieldCheck, UserCog, History, Globe, Users, Upload, Terminal, Link2, QrCode
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -60,7 +60,7 @@ export default function DashboardLayout({
         <div className="flex items-center gap-3 mb-6 px-2">
           <Logo className="w-8 h-8" />
           <h1 className="text-lg font-bold text-foreground">
-            QR Generator
+            URLMD Console
           </h1>
         </div>
 
@@ -76,6 +76,36 @@ export default function DashboardLayout({
             Dashboard
           </Link>
 
+          <div className="pt-3 pb-1">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 opacity-70">Links</p>
+          </div>
+
+          <Link
+            href="/dashboard/urlmd"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname.startsWith('/dashboard/urlmd')
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <Link2 size={18} className={pathname.startsWith('/dashboard/urlmd') ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            Manage Links
+          </Link>
+
+          <Link
+            href="/dashboard/urlmd/create"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/urlmd/create'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <PlusCircle size={18} className={pathname === '/dashboard/urlmd/create' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            New Short Link
+          </Link>
+
+          <div className="pt-3 pb-1">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 opacity-70">QR Codes</p>
+          </div>
+
           <Link
             href="/dashboard/create"
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/create'
@@ -88,14 +118,14 @@ export default function DashboardLayout({
           </Link>
 
           <Link
-            href="/dashboard/urlmd"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname.startsWith('/dashboard/urlmd')
+            href="/dashboard/qrs"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/qrs'
               ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <Link2 size={18} className={pathname.startsWith('/dashboard/urlmd') ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            URLMD
+            <QrCode size={18} className={pathname === '/dashboard/qrs' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            My QRs
           </Link>
 
           <Link

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   BarChart2, Edit, Trash2, ExternalLink,
-  QrCode, Plus, ArrowUpRight, Clock, Download
+  QrCode, Plus, ArrowUpRight, Download, Link2, Clock
 } from "lucide-react";
 import StyledQrCode from "@/app/dashboard/_components/StyledQrCode";
 import { buildQrCodeStylingOptions, parseDesignConfig } from "@/lib/qrStyling";
@@ -12,6 +12,7 @@ import { apiFetch, API_BASE } from "@/lib/api";
 
 export default function DashboardPage() {
   const [qrs, setQrs] = useState<any[]>([]);
+  const [urlLinks, setUrlLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [requestingApprovalId, setRequestingApprovalId] = useState<number | null>(null);
@@ -72,10 +73,19 @@ export default function DashboardPage() {
     if (!storedUser.id) return;
 
     try {
-      const res = await apiFetch(`/get_dashboard_data.php?user_id=${storedUser.id}`);
-      const data = await res.json();
-      if (data.success) {
-        setQrs(data.data);
+      const [qrsRes, linksRes] = await Promise.all([
+        apiFetch(`/get_dashboard_data.php?user_id=${storedUser.id}`),
+        apiFetch(`/urlmd_get_links.php?status=all`),
+      ]);
+
+      const [qrsData, linksData] = await Promise.all([qrsRes.json(), linksRes.json()]);
+
+      if (qrsData.success) {
+        setQrs(qrsData.data);
+      }
+
+      if (linksData.success) {
+        setUrlLinks(linksData.data || []);
       }
     } catch (err) {
       console.error("Failed to load QRs");
@@ -213,8 +223,11 @@ export default function DashboardPage() {
   };
 
   // Quick Stats
-  const totalScans = qrs.reduce((acc, curr) => acc + parseInt(curr.total_scans || 0), 0);
-  const activeLinks = qrs.filter(q => q.status === 'active').length;
+  const totalQrClicks = qrs.reduce((acc, curr) => acc + parseInt(curr.total_scans || 0), 0);
+  const totalShortLinkClicks = urlLinks.reduce((acc, curr) => acc + parseInt(curr.total_clicks || 0), 0);
+  const totalClicks = totalQrClicks + totalShortLinkClicks;
+  const totalQrs = qrs.length;
+  const activeShortLinks = urlLinks.filter((link) => link.status === "active").length;
 
   if (loading) return <div className="p-8 text-muted-foreground animate-pulse">Loading your dashboard...</div>;
 
@@ -224,8 +237,8 @@ export default function DashboardPage() {
       {/* --- HEADER --- */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-2">Welcome back! Here's what's happening with your links.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">URLMD Overview</h1>
+          <p className="text-muted-foreground mt-2">Track your short links and QR campaigns from one command center.</p>
         </div>
         <Link
           href="/dashboard/create"
@@ -239,34 +252,34 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary/10 text-primary rounded-xl">
-              <QrCode size={24} />
+            <div className="p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
+              <Link2 size={24} />
             </div>
             <div>
-              <p className="text-muted-foreground text-sm font-medium">Total QR Codes</p>
-              <p className="text-2xl font-bold text-card-foreground">{qrs.length}</p>
+              <p className="text-muted-foreground text-sm font-medium">Active Short Links</p>
+              <p className="text-2xl font-bold text-card-foreground">{activeShortLinks}</p>
             </div>
           </div>
         </div>
         <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
-              <ArrowUpRight size={24} />
+              <QrCode size={24} />
             </div>
             <div>
-              <p className="text-muted-foreground text-sm font-medium">Total Scans</p>
-              <p className="text-2xl font-bold text-card-foreground">{totalScans}</p>
+              <p className="text-muted-foreground text-sm font-medium">Total QR Codes</p>
+              <p className="text-2xl font-bold text-card-foreground">{totalQrs}</p>
             </div>
           </div>
         </div>
         <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
-              <Clock size={24} />
+              <ArrowUpRight size={24} />
             </div>
             <div>
-              <p className="text-muted-foreground text-sm font-medium">Active Links</p>
-              <p className="text-2xl font-bold text-card-foreground">{activeLinks}</p>
+              <p className="text-muted-foreground text-sm font-medium">Total Clicks</p>
+              <p className="text-2xl font-bold text-card-foreground">{totalClicks}</p>
             </div>
           </div>
         </div>
