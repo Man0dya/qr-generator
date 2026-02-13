@@ -35,6 +35,50 @@ if ($action === 'block') {
     $flagged = 0;
     $flagReason = null;
     $auditAction = 'url_activate';
+    $auditAction = 'url_activate';
+} elseif ($action === 'approve_request') {
+    $stmt = $conn->prepare(
+        "UPDATE url_links
+         SET approval_request_status = 'approved',
+             approval_resolved_at = NOW(),
+             approval_resolved_by = :rid,
+             status = 'active',
+             is_flagged = 0,
+             flag_reason = NULL,
+             updated_at = NOW()
+         WHERE id = :id AND COALESCE(approval_request_status, 'none') = 'requested'"
+    );
+    $stmt->execute([':rid' => $actorUserId, ':id' => $linkId]);
+
+    if ($stmt->rowCount() > 0) {
+        audit_log($conn, $actorUserId, 'url_approve_request', 'url_link', $linkId);
+        json_response(['success' => true]);
+        exit();
+    } else {
+        json_response(['error' => 'No pending request found or failed to update'], 400);
+        exit();
+    }
+
+} elseif ($action === 'deny_request') {
+    $stmt = $conn->prepare(
+        "UPDATE url_links
+         SET approval_request_status = 'denied',
+             approval_resolved_at = NOW(),
+             approval_resolved_by = :rid,
+             updated_at = NOW()
+         WHERE id = :id AND COALESCE(approval_request_status, 'none') = 'requested'"
+    );
+    $stmt->execute([':rid' => $actorUserId, ':id' => $linkId]);
+
+    if ($stmt->rowCount() > 0) {
+        audit_log($conn, $actorUserId, 'url_deny_request', 'url_link', $linkId);
+        json_response(['success' => true]);
+        exit();
+    } else {
+        json_response(['error' => 'No pending request found'], 400);
+        exit();
+    }
+
 } else {
     json_response(['error' => 'Invalid action'], 400);
     exit();

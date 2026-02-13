@@ -106,6 +106,28 @@ export default function UrlmdPage() {
       return;
     }
     await loadLinks();
+    await loadLinks();
+  };
+
+  const handleRequestApproval = async (id: number) => {
+    const note = prompt("Please explain why this should be unbanned/activated:");
+    if (note === null) return;
+
+    try {
+      const res = await apiFetch("/request_url_approval.php", {
+        method: "POST",
+        body: JSON.stringify({ link_id: id, note }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Request submitted successfully!");
+        loadLinks();
+      } else {
+        alert("Error: " + (data.error || "Failed"));
+      }
+    } catch (e) {
+      alert("Network error");
+    }
   };
 
   return (
@@ -204,12 +226,31 @@ export default function UrlmdPage() {
                     >
                       <Edit size={14} /> Edit
                     </Link>
-                    <button
-                      onClick={() => onTogglePause(link)}
-                      className="h-8 px-3 text-xs rounded border border-border hover:bg-muted"
-                    >
-                      {link.status === "active" ? "Pause" : "Activate"}
-                    </button>
+
+                    {(link.status === "active" || link.status === "paused") && (
+                      <button
+                        onClick={() => onTogglePause(link)}
+                        className="h-8 px-3 text-xs rounded border border-border hover:bg-muted"
+                      >
+                        {link.status === "active" ? "Pause" : "Activate"}
+                      </button>
+                    )}
+
+                    {(link.status === 'blocked' || link.status === 'paused') && (!link.approval_request_status || link.approval_request_status === 'none') ? (
+                      <button
+                        onClick={() => handleRequestApproval(link.id)}
+                        className="h-8 px-3 text-xs rounded border border-primary/30 text-primary hover:bg-primary/10 font-medium"
+                      >
+                        Request Approval
+                      </button>
+                    ) : null}
+
+                    {(link.approval_request_status === 'requested') ? (
+                      <span className="h-8 px-3 text-xs rounded border border-amber-200 bg-amber-50 text-amber-700 flex items-center font-bold">
+                        Review Pending
+                      </span>
+                    ) : null}
+
                     <button
                       onClick={() => onDelete(link.id)}
                       className="h-8 w-8 rounded border border-destructive/30 text-destructive hover:bg-destructive/10 inline-flex items-center justify-center"

@@ -11,6 +11,9 @@ type UrlModerationRow = {
   total_clicks: number | string;
   is_flagged?: number | boolean;
   flag_reason?: string | null;
+  approval_request_status?: "none" | "requested" | "approved" | "denied" | string;
+  approval_request_note?: string | null;
+  approval_requested_at?: string | null;
 };
 
 export default function UrlModerationTable({
@@ -18,7 +21,7 @@ export default function UrlModerationTable({
   onAction,
 }: {
   links: UrlModerationRow[];
-  onAction: (id: number, action: "activate" | "pause" | "block") => void;
+  onAction: (id: number, action: "activate" | "pause" | "block" | "approve_request" | "deny_request") => void;
 }) {
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -40,28 +43,55 @@ export default function UrlModerationTable({
                   <span className="uppercase">{link.status}</span>
                   <span>Clicks: {Number(link.total_clicks || 0)}</span>
                 </div>
-                {link.flag_reason ? <p className="text-xs text-amber-600 mt-1">{link.flag_reason}</p> : null}
+                {link.flag_reason ? <p className="text-xs text-amber-600 mt-1">Reason: {link.flag_reason}</p> : null}
+
+                {link.approval_request_status === 'requested' && (
+                  <div className="mt-2 text-xs bg-amber-50 border border-amber-200 p-2 rounded text-amber-800">
+                    <strong>Appeal Pending:</strong> {link.approval_request_note || "No note provided"}
+                    <br />
+                    <span className="text-[10px] text-amber-600">{link.approval_requested_at}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => onAction(link.id, "activate")}
-                  className="h-8 px-3 rounded border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs inline-flex items-center gap-1"
-                >
-                  <CheckCircle2 size={14} /> Activate
-                </button>
-                <button
-                  onClick={() => onAction(link.id, "pause")}
-                  className="h-8 px-3 rounded border border-amber-300 text-amber-700 hover:bg-amber-50 text-xs inline-flex items-center gap-1"
-                >
-                  <PauseCircle size={14} /> Pause
-                </button>
-                <button
-                  onClick={() => onAction(link.id, "block")}
-                  className="h-8 px-3 rounded border border-destructive/40 text-destructive hover:bg-destructive/10 text-xs inline-flex items-center gap-1"
-                >
-                  <Ban size={14} /> Block
-                </button>
+              <div className="flex flex-col gap-2 shrink-0 items-end">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => onAction(link.id, "activate")}
+                    className="h-8 px-3 rounded border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs inline-flex items-center gap-1"
+                  >
+                    <CheckCircle2 size={14} /> Activate
+                  </button>
+                  <button
+                    onClick={() => onAction(link.id, "pause")}
+                    className="h-8 px-3 rounded border border-amber-300 text-amber-700 hover:bg-amber-50 text-xs inline-flex items-center gap-1"
+                  >
+                    <PauseCircle size={14} /> Pause
+                  </button>
+                  <button
+                    onClick={() => onAction(link.id, "block")}
+                    className="h-8 px-3 rounded border border-destructive/40 text-destructive hover:bg-destructive/10 text-xs inline-flex items-center gap-1"
+                  >
+                    <Ban size={14} /> Block
+                  </button>
+                </div>
+
+                {link.approval_request_status === 'requested' && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onAction(link.id, "approve_request")}
+                      className="h-7 px-2 rounded bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold"
+                    >
+                      Approve Appeal
+                    </button>
+                    <button
+                      onClick={() => onAction(link.id, "deny_request")}
+                      className="h-7 px-2 rounded bg-destructive text-white hover:bg-destructive/90 text-xs font-bold"
+                    >
+                      Deny
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

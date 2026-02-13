@@ -21,6 +21,8 @@ type DashboardQr = {
   status?: string;
   created_at?: string;
   title?: string;
+  is_flagged?: number | boolean;
+  approval_request_status?: "none" | "requested" | "approved" | "denied";
 };
 
 type ActivityItem = {
@@ -37,6 +39,8 @@ type ActivityItem = {
   updatedAtLabel?: string;
   createdAtMs: number;
   createdAtLabel: string;
+  isFlagged: boolean;
+  approvalStatus: "none" | "requested" | "approved" | "denied";
 };
 
 export default function DashboardPage() {
@@ -101,6 +105,8 @@ export default function DashboardPage() {
       status: String(qr.status || "active").toLowerCase(),
       createdAtMs: parseCreatedAt(qr.created_at),
       createdAtLabel: qr.created_at ? new Date(qr.created_at).toLocaleDateString() : "—",
+      isFlagged: !!qr.is_flagged,
+      approvalStatus: qr.approval_request_status || "none",
     }));
 
     const linkItems: ActivityItem[] = (urlLinks || []).map((link) => ({
@@ -117,6 +123,8 @@ export default function DashboardPage() {
       updatedAtLabel: link.updated_at ? new Date(link.updated_at).toLocaleDateString() : undefined,
       createdAtMs: parseCreatedAt(link.created_at),
       createdAtLabel: link.created_at ? new Date(link.created_at).toLocaleDateString() : "—",
+      isFlagged: false, // Links don't have is_flagged in this type definition yet, assuming safe or update Text later
+      approvalStatus: "none",
     }));
 
     const combined = [...qrItems, ...linkItems].sort((a, b) => b.createdAtMs - a.createdAtMs);
@@ -169,6 +177,27 @@ export default function DashboardPage() {
   const activeQrs = qrs.filter((qr) => String(qr.status || "active").toLowerCase() === "active").length;
   const activeShortLinks = urlLinks.filter((link) => link.status === "active").length;
   const avgClicksPerAsset = totalAssets > 0 ? Math.round(totalClicks / totalAssets) : 0;
+
+  const handleRequestApproval = async (id: number) => {
+    const note = prompt("Please explain why this should be unbanned:");
+    if (note === null) return;
+
+    try {
+      const res = await apiFetch("/request_qr_approval.php", {
+        method: "POST",
+        body: JSON.stringify({ qr_id: id, note }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Request submitted successfully!");
+        fetchDashboardData();
+      } else {
+        alert("Error: " + (data.error || "Failed"));
+      }
+    } catch (e) {
+      alert("Network error");
+    }
+  };
 
   if (loading) {
     return <div className="p-8 text-muted-foreground animate-pulse">Loading your dashboard...</div>;
@@ -341,6 +370,21 @@ export default function DashboardPage() {
                         }>
                           {item.status}
                         </span>
+
+                        {(item.status === 'banned' || item.status === 'paused') && item.approvalStatus === 'none' && item.type === 'qr' ? (
+                          <button
+                            onClick={() => handleRequestApproval(item.sourceId)}
+                            className="ml-2 text-xs text-primary underline hover:no-underline"
+                          >
+                            Request Approval
+                          </button>
+                        ) : null}
+
+                        {item.approvalStatus === 'requested' ? (
+                          <span className="ml-2 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded">
+                            Review Pending
+                          </span>
+                        ) : null}
                       </p>
                     </div>
                   </div>
@@ -405,6 +449,6 @@ export default function DashboardPage() {
           </div>
         ) : null}
       </div>
-    </div>
+    </div >
   );
 }

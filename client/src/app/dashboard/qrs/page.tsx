@@ -13,6 +13,8 @@ type DashboardQr = {
   status?: string;
   created_at?: string;
   title?: string;
+  is_flagged?: number | boolean;
+  approval_request_status?: "none" | "requested" | "approved" | "denied";
 };
 
 export default function QrsPage() {
@@ -96,7 +98,29 @@ export default function QrsPage() {
     }
   };
 
-  if (loading) return <div className="text-sm text-muted-foreground">Loading QRs...</div>;
+  const handleRequestApproval = async (id: number) => {
+    const note = prompt("Please explain why this should be unbanned:");
+    if (note === null) return;
+
+    try {
+      const res = await apiFetch("/request_qr_approval.php", {
+        method: "POST",
+        body: JSON.stringify({ qr_id: id, note }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Request submitted successfully!");
+        // Refresh data
+        window.location.reload();
+      } else {
+        alert("Error: " + (data.error || "Failed"));
+      }
+    } catch (e) {
+      alert("Network error");
+    }
+  };
+
+  if (loading) return <div className="text-sm text-muted-foreground animate-pulse p-8">Loading QRs...</div>;
 
   return (
     <div className="space-y-6">
@@ -135,46 +159,120 @@ export default function QrsPage() {
         </div>
 
         {filteredQrs.length === 0 ? (
-          <div className="p-8 text-sm text-muted-foreground">No QRs found.</div>
+          <div className="p-12 text-center">
+            <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3 text-muted-foreground">
+              <QrCode size={24} />
+            </div>
+            <h3 className="text-sm font-bold text-foreground">No QRs found</h3>
+            <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
+              Try adjusting your filters or create a new QR code to get started.
+            </p>
+          </div>
         ) : (
-          <div className="divide-y divide-border">
-            {pagedQrs.map((qr) => (
-              <div key={qr.id} className="p-4 flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-                    <QrCode size={14} />
-                    <span className="truncate">{qr.title || `QR /${qr.short_code}`}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground uppercase">{qr.status || "active"}</span>
-                  </div>
-                  <a href={`${API_BASE}/redirect.php?c=${qr.short_code}`} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground mt-1 break-all inline-flex items-center gap-1">
-                    {`${API_BASE}/redirect.php?c=${qr.short_code}`} <ExternalLink size={11} />
-                  </a>
-                  <p className="text-xs text-foreground mt-1 break-all">→ {qr.destination_url}</p>
-                  <p className="text-xs text-muted-foreground mt-1 inline-flex items-center gap-1"><Clock size={11} /> {qr.created_at ? new Date(qr.created_at).toLocaleDateString() : "—"}</p>
-                </div>
+          <div className="bg-background rounded-2xl border border-border overflow-hidden">
+            <div className="grid grid-cols-12 gap-3 px-4 py-3 bg-muted/40 border-b border-border text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              <div className="col-span-12 md:col-span-4">QR / Status</div>
+              <div className="col-span-12 md:col-span-4">Target URL</div>
+              <div className="col-span-12 md:col-span-2 text-right">Scans</div>
+              <div className="col-span-12 md:col-span-2 text-right">Actions</div>
+            </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-foreground">{Number(qr.total_scans || 0)}</p>
-                    <p className="text-[11px] text-muted-foreground">Scans</p>
+            <div className="divide-y divide-border">
+              {pagedQrs.map((qr) => (
+                <div key={qr.id} className="grid grid-cols-12 gap-3 px-4 py-4 border-b border-border/70 last:border-b-0 items-center hover:bg-muted/30 transition-colors">
+                  <div className="col-span-12 md:col-span-4 min-w-0">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-primary/10 text-primary rounded-lg shrink-0">
+                        <QrCode size={18} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-foreground truncate" title={qr.title}>{qr.title || `QR /${qr.short_code}`}</p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <span className={
+                            "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase " +
+                            (qr.status === "active"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              : qr.status === "paused"
+                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                : "bg-destructive/10 text-destructive")
+                          }>
+                            {qr.status || "active"}
+                          </span>
+
+                          {(qr.status === 'banned' || qr.status === 'paused') && (!qr.approval_request_status || qr.approval_request_status === 'none') ? (
+                            <button
+                              onClick={() => handleRequestApproval(qr.id)}
+                              className="text-[10px] font-bold text-primary underline hover:no-underline"
+                            >
+                              Request Approval
+                            </button>
+                          ) : null}
+
+                          {(qr.approval_request_status === 'requested') ? (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 font-bold">
+                              Pending Review
+                            </span>
+                          ) : null}
+
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Clock size={10} /> {qr.created_at ? new Date(qr.created_at).toLocaleDateString() : "—"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <Link href={`/dashboard/analytics/${qr.id}`} className="h-8 px-3 text-xs rounded border border-border hover:bg-muted inline-flex items-center gap-1">
-                    <BarChart2 size={14} /> Analytics
-                  </Link>
-                  <Link href={`/dashboard/edit/${qr.id}`} className="h-8 px-3 text-xs rounded border border-border hover:bg-muted inline-flex items-center gap-1">
-                    <Edit size={14} /> Edit
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => onDeleteQr(qr.id)}
-                    className="h-8 w-8 rounded border border-destructive/30 text-destructive hover:bg-destructive/10 inline-flex items-center justify-center"
-                    title="Delete"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+
+                  <div className="col-span-12 md:col-span-4 min-w-0">
+                    <a
+                      href={qr.destination_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm text-foreground hover:underline truncate block"
+                      title={qr.destination_url}
+                    >
+                      {qr.destination_url}
+                    </a>
+                    <a
+                      href={`${API_BASE}/redirect.php?c=${qr.short_code}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-primary hover:underline mt-0.5 inline-flex items-center gap-1"
+                    >
+                      /{qr.short_code} <ExternalLink size={10} />
+                    </a>
+                  </div>
+
+                  <div className="col-span-12 md:col-span-2 text-right">
+                    <span className="text-sm font-bold text-foreground">{Number(qr.total_scans || 0)}</span>
+                  </div>
+
+                  <div className="col-span-12 md:col-span-2 flex items-center justify-end gap-2">
+                    <Link
+                      href={`/dashboard/analytics/${qr.id}`}
+                      className="p-2 h-8 w-8 inline-flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      title="Analytics"
+                    >
+                      <BarChart2 size={14} />
+                    </Link>
+                    <Link
+                      href={`/dashboard/edit/${qr.id}`}
+                      className="p-2 h-8 w-8 inline-flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      title="Edit"
+                    >
+                      <Edit size={14} />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteQr(qr.id)}
+                      className="p-2 h-8 w-8 inline-flex items-center justify-center rounded-lg border border-destructive/20 text-destructive hover:bg-destructive/10 transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 

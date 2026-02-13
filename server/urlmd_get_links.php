@@ -38,6 +38,8 @@ try {
             l.flag_reason,
             l.created_at,
             l.updated_at,
+            COALESCE(l.approval_request_status, 'none') as approval_request_status,
+            l.approval_requested_at,
             d.domain AS custom_domain,
             (SELECT COUNT(*) FROM url_clicks c WHERE c.url_link_id = l.id) AS total_clicks,
             (SELECT COUNT(DISTINCT c.ip_address) FROM url_clicks c WHERE c.url_link_id = l.id AND c.ip_address IS NOT NULL) AS unique_visitors,

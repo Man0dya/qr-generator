@@ -11,6 +11,7 @@ export type UrlLink = {
   expires_at?: string | null;
   is_flagged: number | boolean;
   flag_reason?: string | null;
+  approval_request_status?: "none" | "requested" | "approved" | "denied";
   created_at: string;
   updated_at?: string;
   custom_domain?: string | null;

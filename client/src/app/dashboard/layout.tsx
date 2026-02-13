@@ -59,7 +59,7 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex font-sans text-foreground selection:bg-primary selection:text-primary-foreground relative">
 
       {/* --- SIDEBAR  --- */}
-      <aside className="fixed left-0 top-0 h-full w-60 bg-card/95 backdrop-blur border-r border-border p-3 flex flex-col z-20 transition-colors duration-300">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-card border-r border-border p-4 flex flex-col z-20 transition-colors duration-300 overflow-hidden">
         <div className="flex items-center gap-2.5 mb-4 px-1.5">
           <Logo className="w-8 h-8" />
           <h1 className="text-base font-bold text-foreground">
@@ -70,23 +70,23 @@ export default function DashboardLayout({
         <nav className="space-y-0.5 flex-1 overflow-y-auto pr-1">
           <Link
             href="/dashboard"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard'
-              ? "bg-primary text-primary-foreground"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <LayoutDashboard size={16} className={pathname === '/dashboard' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <LayoutDashboard size={18} className={pathname === '/dashboard' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             Dashboard
           </Link>
 
           <Link
             href="/dashboard/new-asset"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/new-asset'
-              ? "bg-primary text-primary-foreground"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/new-asset'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <PlusCircle size={16} className={pathname === '/dashboard/new-asset' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <PlusCircle size={18} className={pathname === '/dashboard/new-asset' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             New Asset
           </Link>
 
@@ -96,34 +96,34 @@ export default function DashboardLayout({
 
           <Link
             href="/dashboard/urlmd?view=with-qr"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group font-medium text-sm ${(pathname === '/dashboard/urlmd' && urlmdView === 'with-qr')
-              ? "bg-primary text-primary-foreground"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${(pathname === '/dashboard/urlmd' && urlmdView === 'with-qr')
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <Link2 size={16} className={(pathname === '/dashboard/urlmd' && urlmdView === 'with-qr') ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <Link2 size={18} className={(pathname === '/dashboard/urlmd' && urlmdView === 'with-qr') ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             Short Links with QR
           </Link>
 
           <Link
             href="/dashboard/urlmd"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group font-medium text-sm ${(pathname === '/dashboard/urlmd' && urlmdView !== 'with-qr')
-              ? "bg-primary text-primary-foreground"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${(pathname === '/dashboard/urlmd' && urlmdView !== 'with-qr')
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <Link2 size={16} className={(pathname === '/dashboard/urlmd' && urlmdView !== 'with-qr') ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <Link2 size={18} className={(pathname === '/dashboard/urlmd' && urlmdView !== 'with-qr') ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             Short Links
           </Link>
 
           <Link
             href="/dashboard/qrs"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/qrs'
-              ? "bg-primary text-primary-foreground"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/qrs'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <QrCode size={16} className={pathname === '/dashboard/qrs' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <QrCode size={18} className={pathname === '/dashboard/qrs' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             QRs
           </Link>
 
@@ -133,23 +133,23 @@ export default function DashboardLayout({
 
           <Link
             href="/dashboard/login-history"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/login-history'
-              ? "bg-primary text-primary-foreground"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/login-history'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <History size={16} className={pathname === '/dashboard/login-history' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <History size={18} className={pathname === '/dashboard/login-history' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             History
           </Link>
 
           <Link
             href="/dashboard/settings"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/settings'
-              ? "bg-primary text-primary-foreground"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/settings'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <UserCog size={16} className={pathname === '/dashboard/settings' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <UserCog size={18} className={pathname === '/dashboard/settings' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             Settings
           </Link>
 
@@ -159,45 +159,45 @@ export default function DashboardLayout({
 
           <Link
             href="/dashboard/domains"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/domains'
-              ? "bg-primary text-primary-foreground"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/domains'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <Globe size={16} className={pathname === '/dashboard/domains' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <Globe size={18} className={pathname === '/dashboard/domains' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             Custom Domains
           </Link>
 
           <Link
             href="/dashboard/teams"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/teams'
-              ? "bg-primary text-primary-foreground"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/teams'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <Users size={16} className={pathname === '/dashboard/teams' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <Users size={18} className={pathname === '/dashboard/teams' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             Teams
           </Link>
 
           <Link
             href="/dashboard/bulk"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/bulk'
-              ? "bg-primary text-primary-foreground"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/bulk'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <Upload size={16} className={pathname === '/dashboard/bulk' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <Upload size={18} className={pathname === '/dashboard/bulk' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             Bulk Import
           </Link>
 
           <Link
             href="/dashboard/developers"
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/developers'
-              ? "bg-primary text-primary-foreground"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/developers'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
           >
-            <Terminal size={16} className={pathname === '/dashboard/developers' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <Terminal size={18} className={pathname === '/dashboard/developers' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
             Developers
           </Link>
 
@@ -237,8 +237,8 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="ml-60 flex-1 flex flex-col h-screen overflow-hidden">
-        <div className="flex-1 overflow-y-auto w-full p-6 lg:p-7 transition-all duration-300">
+      <main className="ml-64 flex-1 flex flex-col h-screen overflow-hidden">
+        <div className="flex-1 overflow-y-auto w-full p-8 transition-all duration-300">
           <div className="w-full max-w-[1400px] mx-auto">
             {children}
           </div>
