@@ -3,313 +3,500 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQRCode } from "next-qrcode";
-import { 
-  ArrowRight, BarChart2, Lock, Smartphone, Zap, 
-  Globe, Layers, ChevronRight
+import {
+  ArrowRight, BarChart2, Zap,
+  Globe, Layers, ChevronRight, Shield, RefreshCw, LayoutTemplate
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Logo } from "@/components/Logo";
 
 export default function LandingPage() {
   const { Canvas } = useQRCode();
   const [demoUrl, setDemoUrl] = useState("https://example.com");
-  const [activeTab, setActiveTab] = useState("preview");
+  const [qrColor, setQrColor] = useState('#020617');
+  const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
 
   // Handle scroll effect for navbar
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-500 selection:text-white relative">
-      
-      {/* --- FLOATING NAVBAR --- */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-4' : 'py-6'}`}>
-        <div className={`max-w-6xl mx-auto px-6 h-16 flex items-center justify-between transition-all duration-300 ${
-            scrolled 
-            ? 'bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl mx-4 lg:mx-auto' 
-            : 'bg-transparent'
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 selection:text-primary">
+
+      {/* --- NAVBAR --- */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b ${scrolled ? 'bg-background/80 backdrop-blur-md border-border py-3' : 'bg-transparent border-transparent py-5'
         }`}>
-          {/* Logo */}
-          <div className="flex items-center gap-2 pl-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              <img src="/logo.svg" alt="QR Generator" className="w-7 h-7 object-contain filter invert" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-white">QR Generator</span>
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Logo className="w-8 h-8" />
+            <span className="text-lg font-bold tracking-tight">QR Generator</span>
           </div>
 
-          {/* Links  */}
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-medium text-slate-300 hover:text-white transition">Features</a>
-            <a href="#demo" className="text-sm font-medium text-slate-300 hover:text-white transition">Generator</a>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+            <a href="#features" className="hover:text-foreground transition-colors">Features</a>
+            <a href="#how-it-works" className="hover:text-foreground transition-colors">How it Works</a>
+            <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex items-center gap-3 pr-1">
-            <Link 
-              href="/login" 
-              className="hidden md:block text-sm font-medium text-slate-300 hover:text-white transition px-3 py-2"
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <Link
+              href="/login"
+              className="hidden md:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Log in
+              Sign In
             </Link>
-            <Link 
-              href="/register" 
-              className="bg-white text-slate-900 px-5 py-2 rounded-full text-sm font-bold hover:bg-indigo-50 transition shadow-lg flex items-center gap-2"
+            <Link
+              href="/register"
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition shadow-sm flex items-center gap-2"
             >
-              Get Started <ChevronRight size={14} className="text-indigo-600"/>
+              Get Started
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* --- HERO SECTION--- */}
-      <section className="relative pt-40 pb-32 px-6 bg-slate-900 overflow-hidden">
-        {/* Abstract Background */}
-        <div className="absolute inset-0 z-0 opacity-30">
-             <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-indigo-600 rounded-full blur-[120px] -translate-y-1/2"></div>
-             <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-600 rounded-full blur-[100px] translate-y-1/2"></div>
-             <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+      {/* --- HERO SECTION --- */}
+      <section className="pt-20 pb-24 px-6 md:pt-36 md:pb-32 relative overflow-hidden">
+        <div aria-hidden className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 left-1/2 h-72 w-[32rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute -bottom-32 left-10 h-72 w-72 rounded-full bg-secondary/60 blur-3xl" />
+          <div className="absolute top-24 right-10 h-72 w-72 rounded-full bg-primary/5 blur-3xl" />
         </div>
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          
 
-        <div className="max-w-5xl mx-auto text-center relative z-10 pt-8">
-          
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-8 leading-[1.1]">
-            The Enterprise-Grade <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">QR Infrastructure</span>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-foreground leading-tight">
+            The Professional <br />
+            <span className="text-primary">QR Infrastructure</span>
           </h1>
-          
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed mb-12">
-            Create dynamic, trackable QR codes that scale with your business. Edit destinations in real-time and get deep insights into user behavior.
+
+          <p className="text-2xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed">
+            Create, manage, and track dynamic QR codes with enterprise-grade reliability.
+            Ideal for marketing campaigns, inventory, and instant digital connections.
           </p>
 
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm md:text-base text-muted-foreground mb-10">
+            <span className="inline-flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Dynamic links
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Custom designs
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Analytics & teams
+            </span>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <Link href="/register" className="h-14 px-8 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center gap-2 transition shadow-xl shadow-indigo-900/20 text-lg">
-              Start for free <ArrowRight size={20} />
+            <Link href="/register" aria-label="Start for free" className="h-14 px-10 rounded-xl bg-primary text-primary-foreground font-medium flex items-center gap-2 hover:bg-primary/90 transition shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30">
+              Start for free <ArrowRight size={18} />
             </Link>
-            <Link href="#demo" className="h-14 px-8 rounded-full bg-white/5 border border-white/10 text-white font-bold flex items-center gap-2 hover:bg-white/10 transition backdrop-blur-sm text-lg">
-              View live demo
+            <Link href="#features" aria-label="Explore features" className="h-14 px-10 rounded-xl bg-secondary text-secondary-foreground font-medium flex items-center gap-2 hover:bg-secondary/80 transition border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20">
+              Explore features
             </Link>
           </div>
-        </div>
-      </section>
 
-      {/* --- OVERLAPPING GENERATOR WIDGET --- */}
-      <section className="relative z-20 px-6 -mt-24">
-        <div id="demo" className="max-w-5xl mx-auto bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden">
-          {/* Widget Header */}
-          <div className="flex border-b border-slate-100 bg-slate-50/50 backdrop-blur-xl">
-            <button 
-              onClick={() => setActiveTab('preview')}
-              className={`px-8 py-5 text-sm font-bold border-r border-slate-100 transition flex items-center gap-2 ${activeTab === 'preview' ? 'bg-white text-indigo-600 border-b-2 border-b-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
-            >
-              <Zap size={16} /> Generate QR
-            </button>
-            <button 
-              onClick={() => setActiveTab('analytics')}
-              className={`px-8 py-5 text-sm font-bold border-r border-slate-100 transition flex items-center gap-2 ${activeTab === 'analytics' ? 'bg-white text-indigo-600 border-b-2 border-b-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
-            >
-              <BarChart2 size={16} /> Analytics View
-            </button>
-          </div>
+          {/* Wrapper for the interactive demo to sit nicely */}
+          <div className="max-w-5xl mx-auto bg-card rounded-2xl border border-border shadow-xl overflow-hidden relative group">
+            {/* Simple UI Mockup Header */}
+            <div className="h-10 bg-muted/50 border-b border-border flex items-center px-4 gap-2">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-400/20 border border-red-400/50"></div>
+                <div className="w-3 h-3 rounded-full bg-amber-400/20 border border-amber-400/50"></div>
+                <div className="w-3 h-3 rounded-full bg-emerald-400/20 border border-emerald-400/50"></div>
+              </div>
+              <div className="flex-1 text-center" />
+            </div>
 
-          <div className="p-8 md:p-12 min-h-[400px] flex items-center justify-center bg-white">
-            {activeTab === 'preview' ? (
-              <div className="w-full grid md:grid-cols-2 gap-12 items-center animate-in fade-in duration-500">
-                <div className="space-y-8">
+            <div className="grid md:grid-cols-2 min-h-[400px]">
+              {/* Left: Input */}
+              <div className="p-8 md:p-12 flex flex-col justify-center border-r border-border bg-card">
+                <div className="space-y-6 text-left">
                   <div>
-                    <label className="block text-sm font-bold text-slate-900 mb-2">Destination URL</label>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Destination URL</label>
                     <div className="flex gap-2">
-                      <input 
-                        type="text" 
+                      <input
+                        type="url"
                         value={demoUrl}
                         onChange={(e) => setDemoUrl(e.target.value)}
-                        className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none transition shadow-sm font-medium"
-                        placeholder="https://your-website.com"
+                        aria-label="Destination URL"
+                        aria-describedby="demo-url-help"
+                        className="flex-1 h-10 md:h-12 px-3 rounded-lg border border-input bg-background text-sm md:text-base focus-visible:ring-2 focus-visible:ring-primary/30 focus:border-primary outline-none transition"
+                        placeholder="https://example.com"
                       />
                     </div>
+                    <p id="demo-url-help" className="text-sm text-muted-foreground mt-2">
+                      Try a website URL like https://example.com — preview updates as you type.
+                    </p>
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-bold text-slate-900 mb-3">Customization</label>
-                    <div className="flex gap-3">
-                      {['#000000', '#2563eb', '#dc2626', '#16a34a'].map((color) => (
-                        <div key={color} className="w-10 h-10 rounded-full cursor-pointer shadow-sm hover:scale-110 transition border-2 border-white ring-2 ring-transparent hover:ring-indigo-100" style={{ backgroundColor: color }}></div>
+                    <label className="text-sm font-medium text-foreground mb-3 block">Style Preview</label>
+                    <div className="flex gap-3 items-center">
+                      {['#000000', '#4f46e5', '#db2777', '#059669'].map(c => (
+                        <button
+                          key={c}
+                          type="button"
+                          aria-label={`Preview color ${c}`}
+                          onClick={() => setQrColor(c)}
+                          className={`w-8 h-8 rounded-full border hover:scale-110 transition shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${qrColor === c ? 'ring-2 ring-offset-2 ring-primary' : ''}`}
+                          style={{ backgroundColor: c }}
+                        ></button>
                       ))}
-                    </div>
-                  </div>
 
-                  <div className="p-5 bg-indigo-50 rounded-2xl border border-indigo-100/50 flex gap-4">
-                    <div className="bg-white p-2 rounded-xl text-indigo-600 shadow-sm h-fit">
-                      <Zap size={20} />
+                      <input
+                        aria-label="Custom color"
+                        type="color"
+                        value={qrColor}
+                        onChange={(e) => setQrColor(e.target.value)}
+                        className="w-8 h-8 p-0 border border-border rounded-full"
+                      />
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-indigo-900">Dynamic Link Active</p>
-                      <p className="text-sm text-indigo-600/80 mt-1 leading-relaxed">
-                        Change this destination later without reprinting. Ideal for marketing campaigns.
-                      </p>
+
+                    <div className="mt-3">
+                      <label className="text-sm font-medium text-foreground mb-2 block">Logo</label>
+                      <div className="flex items-center gap-3">
+                        <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-background border border-border text-sm cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = () => setLogoSrc(String(reader.result));
+                              reader.readAsDataURL(file);
+                            }}
+                            className="hidden"
+                          />
+                          Upload logo
+                        </label>
+                        {logoSrc && (
+                          <button type="button" onClick={() => setLogoSrc(null)} className="text-sm text-destructive">Remove</button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex flex-col items-center justify-center p-10 bg-slate-50 rounded-3xl border border-slate-100 shadow-inner">
-                  <div className="bg-white p-5 rounded-2xl shadow-xl shadow-slate-200/50 mb-6">
-                    <Canvas
-                      text={demoUrl}
-                      options={{
-                        errorCorrectionLevel: 'M',
-                        margin: 2,
-                        scale: 4,
-                        width: 220,
-                        color: { dark: '#1e293b', light: '#ffffff' },
-                      }}
-                    />
-                  </div>
-                  <p className="text-sm text-slate-400 font-bold uppercase tracking-wider">Live Preview</p>
+              {/* Right: Output */}
+              <div className="bg-muted/30 p-8 md:p-12 flex items-center justify-center flex-col">
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-border/50 mb-4 relative">
+                  <Canvas
+                    text={demoUrl}
+                    options={{
+                      errorCorrectionLevel: 'M',
+                      margin: 2,
+                      scale: 4,
+                      width: 220,
+                      color: { dark: qrColor, light: '#ffffff' },
+                    }}
+                  />
+                  {logoSrc && (
+                    <img src={logoSrc} alt="logo" className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ width: 56, height: 56, objectFit: 'contain', borderRadius: 8 }} />
+                  )}
                 </div>
+                <p className="text-xs md:text-sm text-muted-foreground font-medium flex items-center gap-1.5">
+                  <RefreshCw size={12} className="animate-spin-slow" /> Live Preview — updates as you type
+                </p>
               </div>
-            ) : (
-              <div className="w-full text-center py-10 animate-in fade-in duration-500">
-                 <div className="inline-flex p-5 bg-slate-50 border border-slate-100 shadow-xl rounded-2xl mb-6">
-                    <BarChart2 className="text-indigo-600" size={48} />
-                 </div>
-                 <h3 className="text-2xl font-bold text-slate-900 mb-3">Unlock Real-Time Data</h3>
-                 <p className="text-slate-500 max-w-md mx-auto mb-8 text-lg">
-                    See exactly who is scanning your codes, from where, and on what device.
-                 </p>
-                 <Link href="/register" className="inline-flex items-center gap-2 text-white bg-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition">
-                    Create Free Account <ArrowRight size={16} />
-                 </Link>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* --- FEATURES BENTO GRID --- */}
-      <section id="features" className="py-32 relative z-10">
+      {/* --- FEATURES GRID --- */}
+      <section id="features" className="py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="mb-20 md:text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Everything needed to scale</h2>
-            <p className="text-slate-500 text-xl leading-relaxed">
-              We built the tools developers and marketers need. Secure, fast, and packed with data.
+          <div className="mb-16 md:text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground mb-4">Everything needed to scale</h2>
+            <p className="text-muted-foreground text-lg">
+              Powerful features designed for teams, marketers, and developers. Built to handle millions of scans.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Card 1: Large */}
-            <div className="md:col-span-2 bg-white p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition group">
-              <div className="mb-8 w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition duration-300">
-                <Globe size={28} />
-              </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-4">Global Location Tracking</h3>
-              <p className="text-slate-500 leading-relaxed mb-8 text-lg">
-                Understand your audience with precision. Our system resolves IP addresses to countries and cities instantly, giving you a heatmap of where your products are being scanned.
-              </p>
-              <div className="h-40 bg-slate-50 rounded-2xl border border-slate-100 relative overflow-hidden group-hover:border-indigo-100 transition">
-                <div className="absolute inset-0 bg-[radial-gradient(#e0e7ff_1px,transparent_1px)] [background-size:16px_16px] opacity-50"></div>
-                <div className="absolute bottom-6 right-6 px-4 py-2 bg-white rounded-xl shadow-lg border border-slate-100 text-sm font-bold text-indigo-600 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span> Sri Lanka: 45 Scans
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2: Small */}
-            <div className="bg-white p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition group">
-              <div className="mb-8 w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center text-violet-600 group-hover:scale-110 transition duration-300">
-                <Smartphone size={28} />
-              </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-4">Device Intelligence</h3>
-              <p className="text-slate-500 leading-relaxed text-lg">
-                Know if your users are on iOS, Android, or Desktop. Optimize your landing pages based on real device data.
-              </p>
-            </div>
-
-            {/* Card 3: Small */}
-            <div className="bg-white p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition group">
-              <div className="mb-8 w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition duration-300">
-                <Lock size={28} />
-              </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-4">Enterprise Security</h3>
-              <p className="text-slate-500 leading-relaxed text-lg">
-                Automated malicious link detection, SSO integration, and role-based access control (RBAC) for teams.
-              </p>
-            </div>
-
-            {/* Card 4: Large */}
-            <div className="md:col-span-2 bg-white p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition group">
-              <div className="mb-8 w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 group-hover:scale-110 transition duration-300">
-                <Layers size={28} />
-              </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-4">Brand Customization</h3>
-              <p className="text-slate-500 leading-relaxed mb-8 text-lg">
-                Upload your logo, choose your brand colors, and select custom frames. Your QR codes should look like *your* company.
-              </p>
-              <div className="flex gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-slate-900 shadow-lg"></div>
-                <div className="w-14 h-14 rounded-2xl bg-indigo-600 shadow-lg"></div>
-                <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-400 shadow-lg">Logo</div>
-              </div>
-            </div>
+            <FeatureCard
+              icon={<Globe className="text-blue-500" size={24} />}
+              title="Global Tracking"
+              desc="Real-time analytics showing exactly where your users are scanning from. Country, city, and device data."
+            />
+            <FeatureCard
+              icon={<LayoutTemplate className="text-violet-500" size={24} />}
+              title="Custom Designs"
+              desc="Match your brand identity with custom colors, logos, and frames. Stand out from generic black-and-white codes."
+            />
+            <FeatureCard
+              icon={<Shield className="text-emerald-500" size={24} />}
+              title="Enterprise Security"
+              desc="SSO, Role-Based Access Control, and automated malicious link detection to keep your users safe."
+            />
+            <FeatureCard
+              icon={<Zap className="text-amber-500" size={24} />}
+              title="Dynamic Links"
+              desc="Change the destination URL anytime, even after printing. Never reprint a QR code again."
+            />
+            <FeatureCard
+              icon={<BarChart2 className="text-indigo-500" size={24} />}
+              title="Deep Analytics"
+              desc="Track conversion rates, time of day, and operating systems to optimize your campaigns."
+            />
+            <FeatureCard
+              icon={<Layers className="text-pink-500" size={24} />}
+              title="Bulk Operations"
+              desc="Generate thousands of unique QR codes in seconds via CSV upload or our robust API."
+            />
           </div>
         </div>
       </section>
 
-      {/* --- CTA SECTION (Dark) --- */}
-      <section className="py-24 px-6 bg-slate-900 border-t border-white/10 relative overflow-hidden">
-         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[100px] pointer-events-none"></div>
-         <div className="max-w-4xl mx-auto text-center relative z-10">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Ready to get started?</h2>
-            <p className="text-slate-400 text-xl mb-10">Join thousands of companies using our platform to connect the physical and digital worlds.</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/register" className="h-14 px-8 rounded-full bg-white text-slate-900 font-bold flex items-center gap-2 hover:bg-indigo-50 transition text-lg">
-                    Create Free Account
-                </Link>
-                <Link href="/login" className="h-14 px-8 rounded-full bg-transparent border border-white/20 text-white font-bold flex items-center gap-2 hover:bg-white/10 transition text-lg">
-                    Login to Dashboard
-                </Link>
-            </div>
-         </div>
+      {/* --- HOW IT WORKS --- */}
+      <section id="how-it-works" className="py-24 px-6 bg-background border-t border-border">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-16 md:text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground mb-4">How it works</h2>
+            <p className="text-muted-foreground text-lg">
+              Create a QR in minutes, then iterate without reprints. Everything stays organized in your dashboard.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 items-stretch">
+            <StepCard
+              step="01"
+              icon={<Zap size={22} className="text-foreground" />}
+              title="Create"
+              desc="Generate a dynamic QR code and pick a destination URL. Change it later without reprinting."
+            />
+            <StepCard
+              step="02"
+              icon={<LayoutTemplate size={22} className="text-foreground" />}
+              title="Design"
+              desc="Match your brand with custom styling so scans feel trustworthy and on-brand."
+            />
+            <StepCard
+              step="03"
+              icon={<BarChart2 size={22} className="text-foreground" />}
+              title="Track"
+              desc="Understand performance with analytics, then optimize campaigns and placements."
+            />
+          </div>
+
+          <div className="mt-10 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              Create <ChevronRight size={14} /> Design <ChevronRight size={14} /> Track
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* --- PRICING --- */}
+      <section id="pricing" className="py-24 px-6 bg-muted/30 border-t border-border">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-16 md:text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground mb-4">Simple pricing</h2>
+            <p className="text-muted-foreground text-lg">Start free, then upgrade when you need more control and scale.</p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8 items-stretch">
+            <PricingCard
+              name="Starter"
+              price="Free"
+              tagline="For personal projects"
+              features={["Unlimited scans", "Dynamic links", "Basic analytics"]}
+              ctaLabel="Get started"
+              ctaHref="/register"
+            />
+            <PricingCard
+              name="Pro"
+              price="Paid"
+              tagline="For teams & campaigns"
+              highlighted
+              features={["Teams & roles", "Advanced analytics", "Bulk operations"]}
+              ctaLabel="Start Pro"
+              ctaHref="/register"
+            />
+            <PricingCard
+              name="Enterprise"
+              price="Custom"
+              tagline="For large orgs"
+              features={["SSO & security controls", "Audit logs", "Priority support"]}
+              ctaLabel="Talk to sales"
+              ctaHref="/register"
+            />
+          </div>
+
+          <p className="mt-8 text-sm text-muted-foreground md:text-center">
+            Need help choosing? Start free — you can upgrade anytime.
+          </p>
+        </div>
+      </section>
+
+      {/* --- FAQ --- */}
+      <section className="py-24 px-6 bg-background border-t border-border">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 md:text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground mb-4">FAQ</h2>
+            <p className="text-muted-foreground text-lg">Quick answers to the most common questions.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <FaqItem
+              q="What’s a dynamic QR code?"
+              a="A dynamic QR lets you change the destination URL after printing. Your QR stays the same; the target can evolve."
+            />
+            <FaqItem
+              q="Can I track scans?"
+              a="Yes — analytics help you understand where and when scans happen so you can improve placements and messaging."
+            />
+            <FaqItem
+              q="Is it safe to use in production?"
+              a="The platform includes security-focused controls like role-based access and moderation features for safer links."
+            />
+            <FaqItem
+              q="Can I generate many QR codes at once?"
+              a="Yes — bulk workflows help you create lots of codes quickly for inventory, events, or large campaigns."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* --- CTA --- */}
+      <section className="py-24 px-6 bg-card border-t border-border">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground mb-6">Ready to get started?</h2>
+          <p className="text-muted-foreground text-lg mb-10">
+            Join thousands of businesses managing their connections with QR Generator.
+          </p>
+          <div className="flex justify-center gap-4">
+            <Link href="/register" className="h-12 px-8 rounded-xl bg-foreground text-background font-medium flex items-center gap-2 hover:bg-foreground/90 transition">
+              Create Free Account
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* --- FOOTER --- */}
-      <footer className="bg-slate-900 text-slate-400 py-16 border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
-            <div className="col-span-1 md:col-span-2">
-                <div className="flex items-center gap-2 mb-6">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                      <img src="/logo.svg" alt="QR Generator" className="w-7 h-7 object-contain" />
-                    </div>
-                    <span className="text-xl font-bold text-white">QR Generator</span>
-                </div>
-                <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-                    The complete platform for generating, managing, and tracking QR codes at scale. Built for developers and marketers.
-                </p>
-            </div>
-            
-            <div>
-                <h4 className="text-white font-bold mb-6">Product</h4>
-                <ul className="space-y-4 text-sm">
-                    <li><a href="#" className="hover:text-white transition">Dynamic QR</a></li>
-                    <li><a href="#" className="hover:text-white transition">Static QR</a></li>
-                    <li><a href="#" className="hover:text-white transition">API Documentation</a></li>
-                </ul>
-            </div>
+      <footer className="bg-background border-t border-border py-12">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2">
+            <Logo className="w-6 h-6" />
+            <span className="font-bold text-foreground">QR Generator</span>
+          </div>
 
-            <div>
-                <h4 className="text-white font-bold mb-6">Company</h4>
-                <ul className="space-y-4 text-sm">
-                    <li><a href="#" className="hover:text-white transition">About</a></li>
-                    <li><a href="#" className="hover:text-white transition">Contact</a></li>
-                    <li><a href="#" className="hover:text-white transition">Terms of Service</a></li>
-                </ul>
-            </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-6 pt-8 mt-12 border-t border-white/10 text-xs text-slate-500 flex flex-col md:flex-row justify-between gap-4">
-            <p>© 2026 QR Generator Inc. All rights reserved.</p>
-            <p className="flex items-center gap-1">Designed by <span className="text-slate-300 font-bold">SiliconCrib</span></p>
+          <div className="text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} QR Generator Inc. All rights reserved.
+          </div>
+
+          <div className="flex gap-6 text-sm font-medium text-muted-foreground">
+            <a href="#" className="hover:text-foreground">Privacy</a>
+            <a href="#" className="hover:text-foreground">Terms</a>
+            <a href="#" className="hover:text-foreground">Contact</a>
+          </div>
         </div>
       </footer>
     </div>
   );
+}
+
+function FeatureCard({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
+  return (
+    <div className="bg-card p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
+      <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-4 border border-border/50">
+        {icon}
+      </div>
+      <h3 className="text-lg font-bold text-foreground mb-2">{title}</h3>
+      <p className="text-muted-foreground leading-relaxed text-sm">
+        {desc}
+      </p>
+    </div>
+  )
+}
+
+function StepCard({ step, icon, title, desc }: { step: string, icon: React.ReactNode, title: string, desc: string }) {
+  return (
+    <div className="bg-card p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between mb-4">
+        <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center border border-border/50">
+          {icon}
+        </div>
+        <span className="text-xs font-mono text-muted-foreground">{step}</span>
+      </div>
+      <h3 className="text-lg font-bold text-foreground mb-2">{title}</h3>
+      <p className="text-muted-foreground leading-relaxed text-sm">{desc}</p>
+    </div>
+  )
+}
+
+function PricingCard({
+  name,
+  price,
+  tagline,
+  features,
+  ctaLabel,
+  ctaHref,
+  highlighted,
+}: {
+  name: string,
+  price: string,
+  tagline: string,
+  features: string[],
+  ctaLabel: string,
+  ctaHref: string,
+  highlighted?: boolean,
+}) {
+  return (
+    <div className={`bg-card p-7 rounded-2xl border shadow-sm ${highlighted ? 'border-primary/40 shadow-lg shadow-primary/10' : 'border-border'} `}>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-bold text-foreground">{name}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{tagline}</p>
+        </div>
+        {highlighted ? (
+          <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground border border-border">
+            Popular
+          </span>
+        ) : null}
+      </div>
+
+      <div className="mt-6">
+        <div className="text-3xl font-bold tracking-tight text-foreground">{price}</div>
+      </div>
+
+      <div className="mt-6 space-y-3">
+        {features.map((f) => (
+          <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            <span>{f}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8">
+        <Link
+          href={ctaHref}
+          className={`h-12 w-full rounded-xl font-medium flex items-center justify-center gap-2 transition border ${highlighted
+            ? 'bg-primary text-primary-foreground hover:bg-primary/90 border-transparent'
+            : 'bg-background text-foreground hover:bg-muted/30 border-border'
+            }`}
+        >
+          {ctaLabel} <ArrowRight size={16} />
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+function FaqItem({ q, a }: { q: string, a: string }) {
+  return (
+    <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
+      <h3 className="text-base font-bold text-foreground mb-2">{q}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">{a}</p>
+    </div>
+  )
 }

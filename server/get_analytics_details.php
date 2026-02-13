@@ -1,8 +1,30 @@
 <?php
 // server/get_analytics_details.php
 require 'db.php';
+require 'utils.php';
 
 $qr_id = $_GET['qr_id'] ?? null;
+
+// Auth
+$user = require_auth();
+$user_id = $user['id'];
+$role = $user['role'] ?? 'user';
+
+function has_column(PDO $conn, string $table, string $column): bool
+{
+    try {
+        $stmt = $conn->prepare(
+            "SELECT 1
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t AND COLUMN_NAME = :c
+             LIMIT 1"
+        );
+        $stmt->execute([':t' => $table, ':c' => $column]);
+        return $stmt->fetchColumn() !== false;
+    } catch (Exception $e) {
+        return false;
+    }
+}
 
 if (!$qr_id) {
     echo json_encode(["error" => "QR ID required"]);
@@ -10,9 +32,17 @@ if (!$qr_id) {
 }
 
 try {
-    // 1. Get Basic QR Info
-    $stmt = $conn->prepare("SELECT user_id, short_code, destination_url, status, created_at FROM qr_codes WHERE id = :id");
-    $stmt->execute([':id' => $qr_id]);
+    $hasUrlLinkId = has_column($conn, 'qr_codes', 'url_link_id');
+    $linkCol = $hasUrlLinkId ? ', url_link_id' : ', NULL AS url_link_id';
+
+    // 1. Get Basic QR Info AND Verify Ownership (or Admin Access)
+    if ($role === 'admin' || $role === 'super_admin') {
+        $stmt = $conn->prepare("SELECT id, user_id, short_code, destination_url, status, created_at {$linkCol} FROM qr_codes WHERE id = :id");
+        $stmt->execute([':id' => $qr_id]);
+    } else {
+        $stmt = $conn->prepare("SELECT id, user_id, short_code, destination_url, status, created_at {$linkCol} FROM qr_codes WHERE id = :id AND user_id = :uid");
+        $stmt->execute([':id' => $qr_id, ':uid' => $user_id]);
+    }
     $qr_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$qr_info) {

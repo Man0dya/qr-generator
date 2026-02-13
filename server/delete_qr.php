@@ -2,9 +2,12 @@
 // server/delete_qr.php
 require 'db.php';
 
+$user = require_auth();
+$user_id = $user['id'];
+
 $input = json_decode(file_get_contents("php://input"), true);
 $qr_id = $input['qr_id'] ?? null;
-$user_id = $input['user_id'] ?? null;
+// User ID is from session
 
 if (!$qr_id || !$user_id) {
     http_response_code(400);

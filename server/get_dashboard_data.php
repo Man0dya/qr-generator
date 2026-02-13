@@ -1,16 +1,51 @@
 <?php
 // server/get_dashboard_data.php
 require 'db.php';
+require 'utils.php';
 
-$user_id = $_GET['user_id'] ?? null;
-
-if (!$user_id) {
-    echo json_encode([]);
-    exit();
+function column_exists(PDO $conn, string $table, string $column): bool
+{
+    try {
+        $stmt = $conn->prepare(
+            "SELECT 1
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t AND COLUMN_NAME = :c
+             LIMIT 1"
+        );
+        $stmt->execute([':t' => $table, ':c' => $column]);
+        return $stmt->fetchColumn() !== false;
+    } catch (Exception $e) {
+        return false;
+    }
 }
 
+// 2. Auth Check
+$user = require_auth();
+$user_id = $user['id'];
+
+// Remove the old GET check
+
+
 try {
-    // This query selects the QR code details AND counts the matching rows in the analytics table
+    $hasFlagColumns = column_exists($conn, 'qr_codes', 'is_flagged') && column_exists($conn, 'qr_codes', 'flag_reason');
+    $hasApprovalColumns = column_exists($conn, 'qr_codes', 'approval_request_status');
+
+    $flagSelect = $hasFlagColumns
+        ? "COALESCE(q.is_flagged, 0) AS is_flagged, q.flag_reason,"
+        : "0 AS is_flagged, NULL AS flag_reason,";
+
+    $approvalSelect = $hasApprovalColumns
+        ? "COALESCE(q.approval_request_status, 'none') AS approval_request_status,
+            q.approval_requested_at,
+            q.approval_request_note,
+            q.approval_resolved_at,
+            q.approval_resolved_by,"
+        : "'none' AS approval_request_status,
+            NULL AS approval_requested_at,
+            NULL AS approval_request_note,
+            NULL AS approval_resolved_at,
+            NULL AS approval_resolved_by,";
+
     $sql = "
         SELECT 
             q.id, 
@@ -18,11 +53,16 @@ try {
             q.destination_url, 
             q.status, 
             q.created_at,
-            COUNT(a.id) as total_scans
+            q.design_config,
+            {$flagSelect}
+            {$approvalSelect}
+            (
+                SELECT COUNT(*)
+                FROM analytics a
+                WHERE a.qr_code_id = q.id
+            ) AS total_scans
         FROM qr_codes q
-        LEFT JOIN analytics a ON q.id = a.qr_code_id
         WHERE q.user_id = :uid
-        GROUP BY q.id
         ORDER BY q.created_at DESC
     ";
 

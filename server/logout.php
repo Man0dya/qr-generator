@@ -1,19 +1,22 @@
 <?php
 // server/logout.php
 require 'db.php';
-require 'utils.php';
+// 0. Auth
+require 'utils.php'; // Ensure require_auth is available
+// require_auth() checks if user is logged in
+$user = require_auth();
+$user_id = $user['id'];
+$session_id = $_SESSION['db_session_id'] ?? 0;
 
-$input = json_decode(file_get_contents("php://input"), true);
-$user_id = isset($input['user_id']) ? (int)$input['user_id'] : 0;
-$session_id = isset($input['session_id']) ? (int)$input['session_id'] : 0;
-
-if ($user_id <= 0 || $session_id <= 0) {
-    json_response(["error" => "Missing user_id or session_id"], 400);
+if ($session_id <= 0) {
+    // If no db_session_id, just destroy session and return success
+    session_destroy();
+    json_response(["success" => true]);
     exit();
 }
 
 try {
-    // Only allow closing your own session
+    // Update db session
     $stmt = $conn->prepare(
         "UPDATE login_sessions
          SET logout_time = NOW(),
@@ -22,8 +25,10 @@ try {
     );
     $stmt->execute([':sid' => $session_id, ':uid' => $user_id]);
 
+    session_destroy();
     json_response(["success" => true]);
 } catch (PDOException $e) {
+    session_destroy(); // Ensure logout happens even if DB fails
     json_response(["error" => "Database error"], 500);
 }
 ?>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 type UserRole = "user" | "admin" | "super_admin";
 
@@ -47,6 +48,12 @@ function formatDateTime(value: string | null) {
 
 export default function LoginHistoryView() {
   const [query, setQuery] = useState("");
+  const [tab, setTab] = useState<"all" | "active" | "ended">("all");
+  const [sort, setSort] = useState<
+    "login_desc" | "login_asc" | "email_asc" | "email_desc" | "duration_desc"
+  >("login_desc");
+  const [pageSize, setPageSize] = useState<10 | 25 | 50>(10);
+  const [page, setPage] = useState<number>(1);
   const [rows, setRows] = useState<LoginSessionAdminRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,11 +63,11 @@ export default function LoginHistoryView() {
       setLoading(true);
       setError(null);
       try {
-        const url = new URL("http://localhost:8000/admin_get_login_history.php");
-        url.searchParams.set("limit", "100");
-        if (query.trim()) url.searchParams.set("q", query.trim());
+        const queryParams = new URLSearchParams();
+        queryParams.set("limit", "500");
+        if (query.trim()) queryParams.set("q", query.trim());
 
-        const res = await fetch(url.toString());
+        const res = await apiFetch(`/admin_get_login_history.php?${queryParams.toString()}`);
         const data = await res.json();
         if (!data.success) {
           setError(data.error || "Failed to load login sessions.");
@@ -86,12 +93,62 @@ export default function LoginHistoryView() {
     [rows]
   );
 
+  const filtered = useMemo(() => {
+    if (tab === "active") return rows.filter((r) => r.logout_time == null);
+    if (tab === "ended") return rows.filter((r) => r.logout_time != null);
+    return rows;
+  }, [rows, tab]);
+
+  const sorted = useMemo(() => {
+    const copy = filtered.slice();
+    copy.sort((a, b) => {
+      const aLogin = new Date(a.login_time).getTime();
+      const bLogin = new Date(b.login_time).getTime();
+      switch (sort) {
+        case "login_asc":
+          return aLogin - bLogin;
+        case "email_asc":
+          return a.email.localeCompare(b.email);
+        case "email_desc":
+          return b.email.localeCompare(a.email);
+        case "duration_desc":
+          return (b.session_duration_seconds ?? -1) - (a.session_duration_seconds ?? -1);
+        case "login_desc":
+        default:
+          return bLogin - aLogin;
+      }
+    });
+    return copy;
+  }, [filtered, sort]);
+
+  const pageCount = useMemo(
+    () => Math.max(1, Math.ceil(sorted.length / pageSize)),
+    [sorted.length, pageSize]
+  );
+
+  const safePage = useMemo(
+    () => Math.min(Math.max(1, page), pageCount),
+    [page, pageCount]
+  );
+
+  const paged = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return sorted.slice(start, start + pageSize);
+  }, [pageSize, safePage, sorted]);
+
+  const rangeLabel = useMemo(() => {
+    if (sorted.length === 0) return "0";
+    const start = (safePage - 1) * pageSize + 1;
+    const end = Math.min(sorted.length, safePage * pageSize);
+    return `${start}-${end} of ${sorted.length}`;
+  }, [pageSize, safePage, sorted.length]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Login Sessions</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="text-xl font-bold text-foreground">Login Sessions</h2>
+          <p className="text-sm text-muted-foreground">
             {loading ? "Loading…" : `${rows.length} sessions (${activeCount} active)`}
           </p>
         </div>
@@ -99,89 +156,203 @@ export default function LoginHistoryView() {
         <div className="w-full sm:w-[360px]">
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setPage(1);
+            }}
             placeholder="Search email, IP, country…"
-            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 text-sm"
+            className="w-full px-4 py-2.5 rounded-xl border border-border bg-background focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary text-sm text-foreground placeholder:text-muted-foreground"
           />
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-100 text-red-700 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl text-sm">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-border bg-muted/30 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center rounded-lg border border-border bg-card p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setTab("all");
+                  setPage(1);
+                }}
+                className={
+                  "h-8 px-3 rounded-md text-xs font-bold transition " +
+                  (tab === "all" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted")
+                }
+              >
+                All
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTab("active");
+                  setPage(1);
+                }}
+                className={
+                  "h-8 px-3 rounded-md text-xs font-bold transition " +
+                  (tab === "active" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "text-muted-foreground hover:bg-muted")
+                }
+              >
+                Active
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTab("ended");
+                  setPage(1);
+                }}
+                className={
+                  "h-8 px-3 rounded-md text-xs font-bold transition " +
+                  (tab === "ended" ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted")
+                }
+              >
+                Ended
+              </button>
+            </div>
+
+            <span className="text-xs font-bold text-muted-foreground ml-1">Sort</span>
+            <select
+              value={sort}
+              onChange={(e) => {
+                setSort(e.target.value as typeof sort);
+                setPage(1);
+              }}
+              className="h-9 text-sm bg-card border border-border rounded-lg px-3 outline-none focus:border-primary transition text-foreground"
+            >
+              <option value="login_desc">Login (newest)</option>
+              <option value="login_asc">Login (oldest)</option>
+              <option value="email_asc">Email (A-Z)</option>
+              <option value="email_desc">Email (Z-A)</option>
+              <option value="duration_desc">Duration (longest)</option>
+            </select>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <span className="text-sm text-muted-foreground">
+              <span className="text-muted-foreground/70">Showing</span> {rangeLabel}
+            </span>
+
+            <span className="text-xs font-bold text-muted-foreground ml-1">Show</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value) as 10 | 25 | 50);
+                setPage(1);
+              }}
+              className="h-9 text-sm bg-card border border-border rounded-lg px-3 outline-none focus:border-primary transition text-foreground"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+              className={
+                "h-9 px-3 rounded-lg border text-xs font-bold transition " +
+                (safePage <= 1
+                  ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
+                  : "bg-card text-foreground border-border hover:bg-muted")
+              }
+            >
+              Prev
+            </button>
+            <span className="text-xs font-bold text-muted-foreground">
+              Page {safePage} / {pageCount}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+              disabled={safePage >= pageCount}
+              className={
+                "h-9 px-3 rounded-lg border text-xs font-bold transition " +
+                (safePage >= pageCount
+                  ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
+                  : "bg-card text-foreground border-border hover:bg-muted")
+              }
+            >
+              Next
+            </button>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="min-w-full text-left">
-            <thead className="bg-slate-50 border-b border-slate-100">
+            <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">User</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Role</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Login</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Logout</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Duration</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">IP</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Country</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Device</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">OS</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Browser</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">User</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Role</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Login</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Logout</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Duration</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">IP</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Country</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Device</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">OS</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Browser</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
-                  <td className="p-6 text-slate-500" colSpan={10}>
+                  <td className="p-6 text-muted-foreground" colSpan={10}>
                     Loading…
                   </td>
                 </tr>
-              ) : rows.length === 0 ? (
+              ) : paged.length === 0 ? (
                 <tr>
-                  <td className="p-6 text-slate-500" colSpan={10}>
+                  <td className="p-6 text-muted-foreground" colSpan={10}>
                     No sessions found.
                   </td>
                 </tr>
               ) : (
-                rows.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50/80 transition">
+                paged.map((r) => (
+                  <tr key={r.id} className="hover:bg-muted/50 transition">
                     <td className="p-4">
-                      <div className="font-semibold text-slate-900 truncate max-w-[240px]">
+                      <div className="font-semibold text-foreground truncate max-w-[240px]">
                         {r.email}
                       </div>
-                      <div className="text-xs text-slate-500">#{r.user_id}{r.name ? ` • ${r.name}` : ""}</div>
+                      <div className="text-xs text-muted-foreground">#{r.user_id}{r.name ? ` • ${r.name}` : ""}</div>
                     </td>
                     <td className="p-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          r.role === "super_admin"
-                            ? "bg-purple-100 text-purple-700"
-                            : r.role === "admin"
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-slate-100 text-slate-600"
-                        }`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${r.role === "super_admin"
+                          ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                          : r.role === "admin"
+                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            : "bg-muted text-muted-foreground"
+                          }`}
                       >
                         {r.role}
                       </span>
                     </td>
-                    <td className="p-4 text-sm text-slate-700">{formatDateTime(r.login_time)}</td>
-                    <td className="p-4 text-sm text-slate-700">
+                    <td className="p-4 text-sm text-muted-foreground">{formatDateTime(r.login_time)}</td>
+                    <td className="p-4 text-sm text-muted-foreground">
                       {r.logout_time ? (
                         formatDateTime(r.logout_time)
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 dark:text-emerald-400">
                           Active
                         </span>
                       )}
                     </td>
-                    <td className="p-4 text-sm text-slate-700">
+                    <td className="p-4 text-sm text-muted-foreground">
                       {r.logout_time ? formatDuration(r.session_duration_seconds) : "—"}
                     </td>
-                    <td className="p-4 text-sm text-slate-700">{r.ip_address || "—"}</td>
-                    <td className="p-4 text-sm text-slate-700">{r.country || "—"}</td>
-                    <td className="p-4 text-sm text-slate-700">{r.device_type || "—"}</td>
-                    <td className="p-4 text-sm text-slate-700">{r.os || "—"}</td>
-                    <td className="p-4 text-sm text-slate-700">{r.browser || "—"}</td>
+                    <td className="p-4 text-sm text-muted-foreground">{r.ip_address || "—"}</td>
+                    <td className="p-4 text-sm text-muted-foreground">{r.country || "—"}</td>
+                    <td className="p-4 text-sm text-muted-foreground">{r.device_type || "—"}</td>
+                    <td className="p-4 text-sm text-muted-foreground">{r.os || "—"}</td>
+                    <td className="p-4 text-sm text-muted-foreground">{r.browser || "—"}</td>
                   </tr>
                 ))
               )}

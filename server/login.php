@@ -21,7 +21,7 @@ try {
 
     if ($user && password_verify($password, $user['password'])) {
         // Close any previous sessions for clean duration tracking
-        close_open_sessions($conn, (int)$user['id']);
+        close_open_sessions($conn, (int) $user['id']);
 
         // Create new login session
         $ip = get_client_ip();
@@ -34,7 +34,7 @@ try {
              VALUES (:uid, :ip, :country, :device, :os, :browser, :ua)"
         );
         $ins->execute([
-            ':uid' => (int)$user['id'],
+            ':uid' => (int) $user['id'],
             ':ip' => $ip,
             ':country' => $country,
             ':device' => $parsed['device_type'],
@@ -42,7 +42,12 @@ try {
             ':browser' => $parsed['browser'],
             ':ua' => substr($ua, 0, 512),
         ]);
-        $sessionId = (int)$conn->lastInsertId();
+        $sessionId = (int) $conn->lastInsertId();
+
+        // STORE SESSION
+        $_SESSION['user_id'] = (int) $user['id'];
+        $_SESSION['role'] = $user['role'];
+        $_SESSION['db_session_id'] = $sessionId;
 
         // Remove password before sending to frontend
         unset($user['password']);

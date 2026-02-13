@@ -2,12 +2,15 @@
 require 'db.php';
 require 'utils.php';
 
+$user = require_role('admin');
+$actor_user_id = $user['id'];
+
 $input = json_decode(file_get_contents("php://input"), true);
 
-$qr_id = isset($input['qr_id']) ? (int)$input['qr_id'] : 0;
-$action = $input['action'] ?? ''; // ban | activate | approve | clear_flag | flag
-$actor_user_id = isset($input['actor_user_id']) ? (int)$input['actor_user_id'] : null;
+$qr_id = isset($input['qr_id']) ? (int) $input['qr_id'] : 0;
+$action = $input['action'] ?? ''; // ban | activate | approve | clear_flag | flag | approve_request | deny_request
 $flag_reason = $input['flag_reason'] ?? null;
+// $actor_user_id from input is ignored (security fix)
 
 if ($qr_id <= 0 || $action === '') {
 	http_response_code(400);
@@ -61,6 +64,36 @@ try {
 		);
 		$stmt->execute([':reason' => $flag_reason, ':rid' => $actor_user_id, ':id' => $qr_id]);
 		audit_log($conn, $actor_user_id, 'qr_flag', 'qr_code', $qr_id, ['reason' => $flag_reason]);
+
+	} elseif ($action === 'approve_request') {
+		$stmt = $conn->prepare(
+			"UPDATE qr_codes
+			 SET approval_request_status = 'approved',
+			     approval_resolved_at = NOW(),
+			     approval_resolved_by = :rid,
+			     status = 'active',
+			     is_flagged = 0,
+			     flag_reason = NULL,
+			     flagged_at = NULL,
+			     reviewed_by = :rid,
+			     reviewed_at = NOW()
+			 WHERE id = :id AND COALESCE(approval_request_status, 'none') = 'requested'"
+		);
+		$stmt->execute([':rid' => $actor_user_id, ':id' => $qr_id]);
+		audit_log($conn, $actor_user_id, 'qr_approve_request', 'qr_code', $qr_id);
+
+	} elseif ($action === 'deny_request') {
+		$stmt = $conn->prepare(
+			"UPDATE qr_codes
+			 SET approval_request_status = 'denied',
+			     approval_resolved_at = NOW(),
+			     approval_resolved_by = :rid,
+			     reviewed_by = :rid,
+			     reviewed_at = NOW()
+			 WHERE id = :id AND COALESCE(approval_request_status, 'none') = 'requested'"
+		);
+		$stmt->execute([':rid' => $actor_user_id, ':id' => $qr_id]);
+		audit_log($conn, $actor_user_id, 'qr_deny_request', 'qr_code', $qr_id);
 
 	} else {
 		http_response_code(400);

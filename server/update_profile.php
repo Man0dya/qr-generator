@@ -1,15 +1,18 @@
 <?php
 // server/update_profile.php
-require 'db.php';
+// 0. Auth
+require 'utils.php'; // Ensure utils is loaded for require_auth
+$user = require_auth();
+$user_id = $user['id'];
 
 $input = json_decode(file_get_contents("php://input"), true);
-$user_id = $input['user_id'] ?? null;
+// $user_id from input is ignored
 $name = $input['name'] ?? '';
 $email = $input['email'] ?? '';
 
-if (!$user_id || empty($email)) {
+if (empty($email)) {
     http_response_code(400);
-    echo json_encode(["error" => "User ID and Email are required"]);
+    echo json_encode(["error" => "Email is required"]);
     exit();
 }
 
@@ -26,8 +29,8 @@ try {
     // 2. Update User
     $stmt = $conn->prepare("UPDATE users SET name = :name, email = :email WHERE id = :uid");
     $stmt->execute([
-        ':name' => $name, 
-        ':email' => $email, 
+        ':name' => $name,
+        ':email' => $email,
         ':uid' => $user_id
     ]);
 
@@ -37,7 +40,7 @@ try {
     $newUser = $refresh->fetch(PDO::FETCH_ASSOC);
 
     echo json_encode([
-        "success" => true, 
+        "success" => true,
         "message" => "Profile updated successfully",
         "user" => $newUser
     ]);

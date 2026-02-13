@@ -5,13 +5,20 @@
 require 'db.php';
 require 'utils.php';
 
-$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
-$offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
-$user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
-$q = isset($_GET['q']) ? trim((string)$_GET['q']) : '';
+// 0. Auth
+$user = require_role('admin');
+// We don't need $user['id'] here, just the check
 
-if ($limit <= 0 || $limit > 200) $limit = 50;
-if ($offset < 0) $offset = 0;
+$limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 50;
+$offset = isset($_GET['offset']) ? (int) $_GET['offset'] : 0;
+// $user_id from GET is for filtering, that's fine for admin
+$user_id = isset($_GET['user_id']) ? (int) $_GET['user_id'] : 0;
+$q = isset($_GET['q']) ? trim((string) $_GET['q']) : '';
+
+if ($limit <= 0 || $limit > 200)
+    $limit = 50;
+if ($offset < 0)
+    $offset = 0;
 
 try {
     $where = [];

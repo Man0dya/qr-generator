@@ -3,14 +3,12 @@
 require 'db.php';
 require 'utils.php';
 
-$user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
-$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 25;
-if ($limit <= 0 || $limit > 200) $limit = 25;
+$user = require_auth();
+$user_id = $user['id'];
 
-if ($user_id <= 0) {
-    json_response(["error" => "user_id required"], 400);
-    exit();
-}
+$limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 25;
+if ($limit <= 0 || $limit > 200)
+    $limit = 25;
 
 try {
     $stmt = $conn->prepare(

@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { 
+import {
   LayoutDashboard, PlusCircle, LogOut,
-  ShieldCheck, UserCog, History
+  ShieldCheck, UserCog, History, Globe, Users, Upload, Terminal, Link2
 } from "lucide-react";
+import { apiFetch } from "@/lib/api";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Logo } from "@/components/Logo";
 
 type UserRole = "user" | "admin" | "super_admin";
 type AuthUser = { id?: number; email: string; role: UserRole; name?: string };
@@ -31,20 +34,8 @@ export default function DashboardLayout({
 
   const handleLogout = async () => {
     try {
-      const storedUser = localStorage.getItem("user");
-      const storedSessionId = localStorage.getItem("session_id");
-      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-
-      if (parsedUser?.id && storedSessionId) {
-        await fetch("http://localhost:8000/logout.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_id: parsedUser.id,
-            session_id: Number(storedSessionId),
-          }),
-        });
-      }
+      // apiFetch handles credentials
+      await apiFetch("/logout.php", { method: "POST" });
     } catch {
       // Best-effort only
     } finally {
@@ -62,114 +53,162 @@ export default function DashboardLayout({
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-white flex font-sans text-slate-900 selection:bg-indigo-500 selection:text-white relative">
-      
-      {/* --- GRID BACKGROUND --- */}
-      <div className="fixed inset-0 z-0 pointer-events-none left-72">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-      </div>
+    <div className="min-h-screen bg-background flex font-sans text-foreground selection:bg-primary selection:text-primary-foreground relative">
 
       {/* --- SIDEBAR  --- */}
-      <aside className="w-72 bg-slate-800 text-slate-300 h-screen sticky top-0 flex flex-col z-20 shadow-2xl">
-        
-        {/* Brand */}
-        <div className="p-8 flex items-center gap-3 shrink-0">
-          <img src="/logo.svg" alt="QR Generator" className="w-8 h-8 object-contain filter invert" />
-          <span className="font-bold text-xl tracking-tight text-white">QR Generator</span>
+      <aside className="fixed left-0 top-0 h-full w-64 bg-card border-r border-border p-4 flex flex-col z-20 transition-colors duration-300 overflow-hidden">
+        <div className="flex items-center gap-3 mb-6 px-2">
+          <Logo className="w-8 h-8" />
+          <h1 className="text-lg font-bold text-foreground">
+            QR Generator
+          </h1>
         </div>
-        
-        {/* Navigation */}
-        <nav className="p-4 space-y-2 mt-2">
-          <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Main Menu</p>
-          
-          <Link 
-            href="/dashboard" 
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium ${
-              pathname === '/dashboard' 
-                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/20" 
-                : "text-slate-400 hover:bg-white/5 hover:text-white"
-            }`}
+
+        <nav className="space-y-1 flex-1">
+          <Link
+            href="/dashboard"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
           >
-            <LayoutDashboard size={20} className={pathname === '/dashboard' ? "text-white" : "text-slate-400 group-hover:text-white transition-colors"} />
-            My QR Codes
+            <LayoutDashboard size={18} className={pathname === '/dashboard' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            Dashboard
           </Link>
 
-          <Link 
-            href="/dashboard/create" 
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium ${
-              pathname === '/dashboard/create' 
-                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/20" 
-                : "text-slate-400 hover:bg-white/5 hover:text-white"
-            }`}
+          <Link
+            href="/dashboard/create"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/create'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
           >
-            <PlusCircle size={20} className={pathname === '/dashboard/create' ? "text-white" : "text-slate-400 group-hover:text-white transition-colors"} />
-            Create New
+            <PlusCircle size={18} className={pathname === '/dashboard/create' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            Create QR
           </Link>
 
-          <Link 
-            href="/dashboard/login-history" 
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium ${
-              pathname === '/dashboard/login-history' 
-                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/20" 
-                : "text-slate-400 hover:bg-white/5 hover:text-white"
-            }`}
+          <Link
+            href="/dashboard/urlmd"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname.startsWith('/dashboard/urlmd')
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
           >
-            <History size={20} className={pathname === '/dashboard/login-history' ? "text-white" : "text-slate-400 group-hover:text-white transition-colors"} />
-            Login History
+            <Link2 size={18} className={pathname.startsWith('/dashboard/urlmd') ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            URLMD
+          </Link>
+
+          <Link
+            href="/dashboard/login-history"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/login-history'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <History size={18} className={pathname === '/dashboard/login-history' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            History
+          </Link>
+
+          <Link
+            href="/dashboard/settings"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/settings'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <UserCog size={18} className={pathname === '/dashboard/settings' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            Settings
+          </Link>
+
+          <div className="pt-4 pb-2">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 opacity-70">Enterprise</p>
+          </div>
+
+          <Link
+            href="/dashboard/domains"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/domains'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <Globe size={18} className={pathname === '/dashboard/domains' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            Custom Domains
+          </Link>
+
+          <Link
+            href="/dashboard/teams"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/teams'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <Users size={18} className={pathname === '/dashboard/teams' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            Teams
+          </Link>
+
+          <Link
+            href="/dashboard/bulk"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/bulk'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <Upload size={18} className={pathname === '/dashboard/bulk' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            Bulk Import
+          </Link>
+
+          <Link
+            href="/dashboard/developers"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/developers'
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <Terminal size={18} className={pathname === '/dashboard/developers' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            Developers
           </Link>
 
           {(user.role === 'admin' || user.role === 'super_admin') && (
-            <Link 
+            <Link
               href={user.role === 'super_admin' ? "/super-admin" : "/admin"}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all duration-200 group font-medium"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-amber-500 hover:bg-amber-500/10 transition-all font-medium mt-6 text-sm"
             >
-              <ShieldCheck size={20} className="text-slate-400 group-hover:text-white transition-colors" />
-              {user.role === 'super_admin' ? 'Super Admin' : 'Admin Console'}
+              <ShieldCheck size={18} />
+              {user.role === 'super_admin' ? 'Super Admin' : 'Admin Panel'}
             </Link>
           )}
         </nav>
 
-        {/* --- FOOTER SECTION --- */}
-        <div className="mt-auto p-5 border-t border-white/5 bg-slate-900/20">
-           
-           {/* Settings Link */}
-           <Link 
-                href="/dashboard/settings" 
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mb-6 group font-medium ${
-                  pathname === '/dashboard/settings'
-                    ? "bg-white/10 text-white" 
-                    : "text-slate-400 hover:bg-white/5 hover:text-white"
-                }`}
-              >
-                <UserCog size={20} className={pathname === '/dashboard/settings' ? "text-white" : "text-slate-400 group-hover:text-white transition-colors"} />
-                Settings
-           </Link>
-
-           {/* User Profile Card */}
-          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/5 mb-3 group hover:border-white/10 transition">
-            <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold shadow-md text-sm">
+        <div className="mt-auto pt-4 space-y-4">
+          <div className="flex items-center gap-3 px-2 py-2 mb-2 bg-muted/40 rounded-xl border border-border/50">
+            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary font-bold text-xs shrink-0">
               {initial}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-bold text-white truncate group-hover:text-indigo-200 transition">{displayName}</p>
-              <p className="text-xs text-slate-400 truncate group-hover:text-slate-300 transition">{displayEmail}</p>
+              <p className="text-sm font-bold truncate text-foreground">{displayName}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{displayEmail}</p>
             </div>
           </div>
-          
-          <button 
-            onClick={handleLogout} 
-            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm font-bold text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition"
-          >
-            <LogOut size={16} />
-            Sign Out
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleLogout}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-destructive hover:bg-destructive/10 border border-destructive/20 hover:border-destructive/30 transition-all font-medium text-sm"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
 
-      {/* --- MAIN CONTENT AREA --- */}
-      <main className="flex-1 overflow-y-auto p-8 md:p-12 relative z-10 bg-white/50">
-        <div className="max-w-6xl mx-auto">
-           {children}
+      {/* Main Content */}
+      <main className="ml-64 flex-1 flex flex-col h-screen overflow-hidden">
+        <div className="flex-1 overflow-y-auto w-full p-8 transition-all duration-300">
+          <div className="w-full">
+            {children}
+          </div>
         </div>
       </main>
     </div>

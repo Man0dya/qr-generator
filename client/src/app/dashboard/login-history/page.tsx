@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api";
 
 type LoginSessionRow = {
   id: number;
@@ -68,12 +69,7 @@ export default function LoginHistoryPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(
-          `http://localhost:8000/get_login_history.php?user_id=${encodeURIComponent(
-            String(user.id)
-          )}&limit=50`,
-          { method: "GET" }
-        );
+        const res = await apiFetch(`/get_login_history.php?limit=50`, { method: "GET" });
         const data = await res.json();
         if (!data.success) {
           setError(data.error || "Failed to load login history.");

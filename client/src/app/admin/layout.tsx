@@ -3,9 +3,12 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
-import { 
-  Users, ShieldAlert, LogOut, ArrowLeft, ShieldCheck, BarChart3 
+import {
+  Users, ShieldAlert, LogOut, BarChart3, Link2
 } from "lucide-react";
+import { apiFetch } from "@/lib/api";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Logo } from "@/components/Logo";
 
 type UserRole = "user" | "admin" | "super_admin";
 type AuthUser = { id?: number; email: string; role: UserRole; name?: string };
@@ -21,11 +24,10 @@ function NavItem({ href, active, icon: Icon, label }: NavItemProps) {
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium ${
-        active
-          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/20"
-          : "text-slate-400 hover:bg-white/5 hover:text-white"
-      }`}
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium ${active
+        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/20"
+        : "text-slate-400 hover:bg-white/5 hover:text-white"
+        }`}
     >
       <Icon
         size={20}
@@ -55,31 +57,24 @@ export default function AdminLayout({
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname(); // <--- Get current path
+  const pathname = usePathname();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
   // LOGIC: Determine which tab is active
-  // 1. If ?view= exists, use it.
-  // 2. If we are on the specific analytics page (/admin/analytics/...), keep 'moderation' active.
-  // 3. Otherwise, default to 'analytics' (Global Dashboard).
   let currentView = searchParams.get('view');
-
-  // Keep the Users tab active while drilling into a specific user's QR list.
   if (currentView === 'user-qrs') {
     currentView = 'users';
   }
-  
   if (!currentView) {
     if (pathname.includes('/admin/analytics/')) {
-        currentView = 'moderation'; // Keep parent active
+      currentView = 'moderation';
     } else {
-        currentView = 'analytics'; // Default dashboard
+      currentView = 'analytics';
     }
   }
 
   useEffect(() => {
-    // IMPORTANT: do not read localStorage during render (prevents hydration mismatch)
     try {
       const storedUser = window.localStorage.getItem("user");
       if (storedUser) {
@@ -113,20 +108,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
   const handleLogout = async () => {
     try {
-      const storedUser = localStorage.getItem("user");
-      const storedSessionId = localStorage.getItem("session_id");
-      const parsedUser = storedUser ? (JSON.parse(storedUser) as AuthUser) : null;
-
-      if (parsedUser?.id && storedSessionId) {
-        await fetch("http://localhost:8000/logout.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_id: parsedUser.id,
-            session_id: Number(storedSessionId),
-          }),
-        });
-      }
+      await apiFetch("/logout.php", { method: "POST" });
     } catch {
       // Best-effort only
     } finally {
@@ -136,93 +118,108 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Render nothing until we've checked localStorage on the client.
-  // This keeps server HTML and first client render in sync (no hydration mismatch).
   if (!authChecked) return null;
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-white flex font-sans text-slate-900 selection:bg-indigo-500 selection:text-white relative">
-      
+    <div className="min-h-screen bg-background flex font-sans text-foreground selection:bg-primary selection:text-primary-foreground relative">
+
       {/* --- SIDEBAR --- */}
-      <aside className="w-72 bg-slate-900 text-slate-300 h-screen sticky top-0 flex flex-col z-50 shadow-2xl shrink-0">
-        
+      <aside className="fixed left-0 top-0 h-full w-64 bg-card border-r border-border p-4 flex flex-col z-20 transition-colors duration-300 overflow-hidden">
+
         {/* Brand */}
-        <div className="p-8 flex items-center gap-3 shrink-0">
-          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-red-500/30 text-white font-bold text-lg">
-            <ShieldCheck size={18} />
-          </div>
+        <div className="flex items-center gap-3 mb-6 px-2">
+          <Logo className="w-8 h-8" />
           <div>
-            <span className="font-bold text-lg tracking-tight text-white block leading-none">Admin Console</span>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Restricted Access</span>
+            <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+              Admin Console
+            </h1>
           </div>
         </div>
-        
+
         {/* Navigation */}
-        <nav className="p-4 space-y-2 mt-2">
-          <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Management</p>
-          
-          <NavItem
+        <nav className="space-y-1 flex-1">
+          <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 opacity-70">Management</p>
+
+          <Link
             href="/admin?view=analytics"
-            active={currentView === "analytics"}
-            icon={BarChart3}
-            label="Global Analytics"
-          />
-          <NavItem
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "analytics"
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <BarChart3 size={18} className={currentView === "analytics" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            Global Analytics
+          </Link>
+
+          <Link
             href="/admin?view=users"
-            active={currentView === "users"}
-            icon={Users}
-            label="User Management"
-          />
-          <NavItem
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "users"
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <Users size={18} className={currentView === "users" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            User Management
+          </Link>
+
+          <Link
             href="/admin?view=moderation"
-            active={currentView === "moderation"}
-            icon={ShieldAlert}
-            label="QR Moderation"
-          />
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "moderation"
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <ShieldAlert size={18} className={currentView === "moderation" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            QR Moderation
+          </Link>
+
+          <Link
+            href="/admin?view=url-moderation"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "url-moderation"
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+          >
+            <Link2 size={18} className={currentView === "url-moderation" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            URL Moderation
+          </Link>
         </nav>
 
         {/* --- FOOTER SECTION --- */}
-        <div className="mt-auto p-5 border-t border-white/5 bg-slate-900/50">
-           
-           {/* Return to App Link */}
-           <Link 
-                href="/dashboard" 
-                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mb-6 group font-medium text-slate-400 hover:bg-white/5 hover:text-white"
-              >
-                <ArrowLeft size={20} className="text-slate-500 group-hover:text-white transition-colors" />
-                Return to App
-           </Link>
+        <div className="mt-auto pt-4 space-y-4">
 
-           {/* Admin Profile Card */}
-          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/5 mb-3">
-            <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white font-bold shadow-md text-sm">
+
+
+          <div className="flex items-center gap-3 px-2 py-2 mb-2 bg-muted/40 rounded-xl border border-border/50">
+            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary font-bold text-xs shrink-0">
               {user.email.charAt(0).toUpperCase()}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-bold text-white truncate">Administrator</p>
-              <p className="text-xs text-slate-500 truncate">{user.email}</p>
+              <p className="text-sm font-bold truncate text-foreground">Administrator</p>
+              <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
             </div>
           </div>
-          
-          <button 
-            onClick={handleLogout} 
-            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm font-bold text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition"
-          >
-            <LogOut size={16} />
-            Sign Out
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleLogout}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-destructive hover:bg-destructive/10 border border-destructive/20 hover:border-destructive/30 transition-all font-medium text-sm"
+            >
+              <LogOut size={16} />
+              Sign Out
+            </button>
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
 
       {/* --- MAIN CONTENT AREA --- */}
-      <main className="flex-1 overflow-y-auto relative z-10 bg-slate-50">
-        <div className="absolute inset-0 z-0 pointer-events-none">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        </div>
-        
-        <div className="max-w-7xl mx-auto p-8 md:p-12 relative z-10">
-           {children}
+      <main className="ml-64 flex-1 flex flex-col h-screen overflow-hidden">
+        <div className="flex-1 overflow-y-auto w-full p-8 transition-all duration-300">
+          <div className="w-full">
+            {children}
+          </div>
         </div>
       </main>
     </div>

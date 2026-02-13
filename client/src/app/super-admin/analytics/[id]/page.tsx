@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { apiFetch } from "@/lib/api";
 import {
   ArrowLeft,
   Calendar,
@@ -74,9 +75,7 @@ export default function SuperAdminAnalyticsPage() {
 
     const fetchData = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:8000/get_analytics_details.php?qr_id=${params.id}`,
-        );
+        const res = await apiFetch(`/get_analytics_details.php?qr_id=${params.id}`);
         const json = (await res.json()) as {
           success?: boolean;
           qr_info?: AnalyticsDetails["qr_info"];

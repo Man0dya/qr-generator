@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, BarChart2, ExternalLink, Flag } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 type UserQrRow = {
   id: number;
@@ -42,9 +43,9 @@ export default function UserQrsView({ userId, analyticsBasePath, onBack }: Props
       setLoading(true);
       setError(null);
       try {
-        const url = new URL("http://localhost:8000/get_user_qrs_admin.php");
-        url.searchParams.set("user_id", String(userId));
-        const res = await fetch(url.toString());
+        const queryParams = new URLSearchParams();
+        queryParams.set("user_id", String(userId));
+        const res = await apiFetch(`/get_user_qrs_admin.php?${queryParams.toString()}`);
         const data = await res.json();
         if (!data.success) {
           setError(data.error || "Failed to load user QR codes.");
@@ -78,40 +79,40 @@ export default function UserQrsView({ userId, analyticsBasePath, onBack }: Props
           >
             <ArrowLeft size={16} /> Back to Users
           </button>
-          <h2 className="text-xl font-bold text-slate-900 mt-2">QR Codes for User #{userId}</h2>
-          <p className="text-sm text-slate-500">{totalLinks} links • {totalScans} total scans</p>
+          <h2 className="text-xl font-bold text-foreground mt-2">QR Codes for User #{userId}</h2>
+          <p className="text-sm text-muted-foreground">{totalLinks} links • {totalScans} total scans</p>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-100 text-red-700 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl text-sm">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left">
-            <thead className="bg-slate-50 border-b border-slate-100">
+            <thead className="bg-muted/40 border-b border-border">
               <tr>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Short Code</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Target URL</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Scans</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase">Created</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase text-right">Actions</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Short Code</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Target URL</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Status</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Scans</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Created</th>
+                <th className="p-4 text-xs font-bold text-muted-foreground uppercase text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
-                  <td className="p-6 text-slate-500" colSpan={6}>
+                  <td className="p-6 text-muted-foreground" colSpan={6}>
                     Loading…
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td className="p-6 text-slate-500" colSpan={6}>
+                  <td className="p-6 text-muted-foreground" colSpan={6}>
                     No QR codes found.
                   </td>
                 </tr>
@@ -119,41 +120,40 @@ export default function UserQrsView({ userId, analyticsBasePath, onBack }: Props
                 rows.map((r) => {
                   const isFlagged = normalizeBool(r.is_flagged);
                   return (
-                    <tr key={r.id} className="hover:bg-slate-50/80 transition">
-                      <td className="p-4 font-mono text-indigo-600 font-bold">/{r.short_code}</td>
-                      <td className="p-4 text-sm text-slate-600 max-w-[520px] truncate" title={r.destination_url}>
+                    <tr key={r.id} className="hover:bg-muted/50 transition">
+                      <td className="p-4 font-mono text-primary font-bold">/{r.short_code}</td>
+                      <td className="p-4 text-sm text-foreground max-w-[520px] truncate" title={r.destination_url}>
                         {r.destination_url}
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              r.status === "active"
-                                ? "bg-emerald-100 text-emerald-700"
-                                : r.status === "paused"
-                                  ? "bg-amber-100 text-amber-800"
-                                  : "bg-red-100 text-red-700"
-                            }`}
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${r.status === "active"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              : r.status === "paused"
+                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                : "bg-destructive/10 text-destructive"
+                              }`}
                           >
                             {r.status}
                           </span>
                           {isFlagged ? (
                             <span
                               title={r.flag_reason || "Flagged"}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-700"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive"
                             >
                               <Flag size={12} /> Flagged
                             </span>
                           ) : null}
                         </div>
                       </td>
-                      <td className="p-4 text-sm text-slate-700">{Number(r.total_scans || 0)}</td>
-                      <td className="p-4 text-sm text-slate-500">{new Date(r.created_at).toLocaleDateString()}</td>
+                      <td className="p-4 text-sm text-foreground">{Number(r.total_scans || 0)}</td>
+                      <td className="p-4 text-sm text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => router.push(`${analyticsBasePath}/analytics/${r.id}`)}
-                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                            className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition"
                             title="View analytics"
                           >
                             <BarChart2 size={18} />
@@ -162,7 +162,7 @@ export default function UserQrsView({ userId, analyticsBasePath, onBack }: Props
                             href={r.destination_url}
                             target="_blank"
                             rel="noreferrer"
-                            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition"
                             title="Open target"
                           >
                             <ExternalLink size={18} />

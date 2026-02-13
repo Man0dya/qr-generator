@@ -6,6 +6,11 @@ ini_set('display_errors', 0); // Don't print HTML errors to JSON output
 error_reporting(E_ALL);
 
 require 'db.php';
+require 'utils.php';
+
+// Security Check
+$user = require_role('admin');
+
 header('Content-Type: application/json');
 
 $response = [
@@ -23,13 +28,15 @@ try {
     try {
         $stmt = $conn->query("SELECT COUNT(*) as total FROM analytics");
         $response['total_scans'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    } catch (Exception $e) { /* Ignore, keep 0 */ }
+    } catch (Exception $e) { /* Ignore, keep 0 */
+    }
 
     // 2. Active Links
     try {
         $stmt = $conn->query("SELECT COUNT(*) as total FROM qr_codes WHERE status = 'active'");
         $response['active_links'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    } catch (Exception $e) { /* Ignore */ }
+    } catch (Exception $e) { /* Ignore */
+    }
 
     // 3. Timeline (Check if table has data first)
     if ($response['total_scans'] > 0) {
@@ -42,19 +49,22 @@ try {
                 ORDER BY date ASC
             ");
             $response['timeline'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) { /* Ignore */ }
+        } catch (Exception $e) { /* Ignore */
+        }
 
         // 4. Devices
         try {
             $stmt = $conn->query("SELECT device_type as name, COUNT(*) as value FROM analytics GROUP BY device_type");
             $response['devices'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) { /* Ignore */ }
+        } catch (Exception $e) { /* Ignore */
+        }
 
         // 5. OS
         try {
             $stmt = $conn->query("SELECT os as name, COUNT(*) as value FROM analytics GROUP BY os");
             $response['os'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) { /* Ignore */ }
+        } catch (Exception $e) { /* Ignore */
+        }
 
         // 6. Top QRs
         try {
@@ -67,7 +77,8 @@ try {
                 LIMIT 5
             ");
             $response['top_qrs'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) { /* Ignore */ }
+        } catch (Exception $e) { /* Ignore */
+        }
     }
 
     echo json_encode($response);
