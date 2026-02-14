@@ -1,10 +1,11 @@
 <?php
 // server/register.php
 require 'db.php';
+require 'security.php';
 
 $input = json_decode(file_get_contents("php://input"), true);
-$name = $input['name'] ?? '';
-$email = $input['email'] ?? '';
+$name = sanitize_string($input['name'] ?? '', 100);
+$email = sanitize_string($input['email'] ?? '', 255);
 $password = $input['password'] ?? '';
 
 if (empty($email) || empty($password) || empty($name)) {
@@ -13,11 +14,30 @@ if (empty($email) || empty($password) || empty($name)) {
     exit();
 }
 
+// Rate limit: 3 registrations per IP per hour
+$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+check_rate_limit('register:' . $ip, 3, 3600);
+
+// Validate email format
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    http_response_code(400);
+    echo json_encode(["error" => "Invalid email format"]);
+    exit();
+}
+
+// Validate password strength
+$pwError = validate_password_strength($password);
+if ($pwError !== '') {
+    http_response_code(400);
+    echo json_encode(["error" => $pwError]);
+    exit();
+}
+
 try {
     // 1. Check if email exists
     $check = $conn->prepare("SELECT id FROM users WHERE email = :email");
     $check->execute([':email' => $email]);
-    
+
     if ($check->rowCount() > 0) {
         http_response_code(409); // Conflict
         echo json_encode(["error" => "Email already registered"]);
@@ -28,7 +48,6 @@ try {
     $hashed_password = password_hash($password, PASSWORD_BCRYPT);
 
     // 3. Insert User
-    // FIXED: Changed 'password_hash' to 'password' to match your DB
     $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :pass)");
     $stmt->execute([
         ':name' => $name,
@@ -40,6 +59,6 @@ try {
 
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["error" => "Database error: " . $e->getMessage()]);
+    echo json_encode(["error" => "Database error"]);
 }
 ?>

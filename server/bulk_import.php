@@ -12,7 +12,7 @@ function generateRandomString($length = 6)
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $randomString = '';
     for ($i = 0; $i < $length; $i++) {
-        $randomString .= $characters[rand(0, strlen($characters) - 1)];
+        $randomString .= $characters[random_int(0, strlen($characters) - 1)];
     }
     return $randomString;
 }
@@ -123,7 +123,7 @@ if ($method === 'POST') {
 
     } catch (Exception $e) {
         $conn->rollBack();
-        json_response(['error' => 'Import failed: ' . $e->getMessage()], 500);
+        json_response(['error' => 'Import failed'], 500);
     }
 }
 ?>

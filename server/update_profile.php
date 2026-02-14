@@ -1,18 +1,26 @@
 <?php
 // server/update_profile.php
-// 0. Auth
-require 'utils.php'; // Ensure utils is loaded for require_auth
+require 'db.php';
+require 'utils.php';
+require 'security.php';
+
 $user = require_auth();
 $user_id = $user['id'];
 
 $input = json_decode(file_get_contents("php://input"), true);
-// $user_id from input is ignored
-$name = $input['name'] ?? '';
-$email = $input['email'] ?? '';
+$name = sanitize_string($input['name'] ?? '', 100);
+$email = sanitize_string($input['email'] ?? '', 255);
 
 if (empty($email)) {
     http_response_code(400);
     echo json_encode(["error" => "Email is required"]);
+    exit();
+}
+
+// Validate email format
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    http_response_code(400);
+    echo json_encode(["error" => "Invalid email format"]);
     exit();
 }
 
@@ -46,7 +54,8 @@ try {
     ]);
 
 } catch (PDOException $e) {
+    error_log('Profile update error: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["error" => "Database error: " . $e->getMessage()]);
+    echo json_encode(["error" => "Database error"]);
 }
 ?>

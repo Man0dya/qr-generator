@@ -73,7 +73,7 @@ function generateRandomString($length = 6)
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $randomString = '';
     for ($i = 0; $i < $length; $i++) {
-        $randomString .= $characters[rand(0, strlen($characters) - 1)];
+        $randomString .= $characters[random_int(0, strlen($characters) - 1)];
     }
     return $randomString;
 }
@@ -94,19 +94,7 @@ $flag_reason = ($mod['action'] !== 'allow') ? ($mod['reason'] ?? 'Moderation tri
 $initial_status = $mod['action'] === 'ban' ? 'banned' : ($mod['action'] === 'pause' ? 'paused' : 'active');
 
 try {
-    $hasUrlLinkColumn = false;
-    try {
-        $colStmt = $conn->query("SHOW COLUMNS FROM qr_codes LIKE 'url_link_id'");
-        $hasUrlLinkColumn = $colStmt && $colStmt->rowCount() > 0;
-    } catch (Exception $e) {
-        $hasUrlLinkColumn = false;
-    }
-
-    $sql = "INSERT INTO qr_codes (user_id, destination_url, short_code, design_config, status, is_flagged, flag_reason, flagged_at, custom_domain_id, qr_type, qr_data";
-    $sql .= $hasUrlLinkColumn ? ", url_link_id" : "";
-    $sql .= ") VALUES (:uid, :url, :code, :design, :status, :is_flagged, :flag_reason, :flagged_at, :cd_id, :type, :data";
-    $sql .= $hasUrlLinkColumn ? ", :url_link_id" : "";
-    $sql .= ")";
+    $sql = "INSERT INTO qr_codes (user_id, destination_url, short_code, design_config, status, is_flagged, flag_reason, flagged_at, custom_domain_id, qr_type, qr_data, url_link_id) VALUES (:uid, :url, :code, :design, :status, :is_flagged, :flag_reason, :flagged_at, :cd_id, :type, :data, :url_link_id)";
 
     // 5. Insert into Database INCLUDING design_config + moderation fields
     $stmt = $conn->prepare($sql);
@@ -123,11 +111,8 @@ try {
         ':cd_id' => $custom_domain_id,
         ':type' => $qr_type,
         ':data' => $qr_data,
+        ':url_link_id' => ($url_link_id !== null && $url_link_id > 0) ? $url_link_id : null,
     ];
-
-    if ($hasUrlLinkColumn) {
-        $params[':url_link_id'] = ($url_link_id !== null && $url_link_id > 0) ? $url_link_id : null;
-    }
 
     $stmt->execute($params);
 
@@ -148,7 +133,8 @@ try {
     ]);
 
 } catch (PDOException $e) {
+    error_log('QR creation error: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["error" => "Database error: " . $e->getMessage()]);
+    echo json_encode(["error" => "Database error"]);
 }
 ?>

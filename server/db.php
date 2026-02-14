@@ -7,36 +7,49 @@ if (file_exists(__DIR__ . '/.env')) {
     foreach ($lines as $line) {
         if (strpos(trim($line), '#') === 0)
             continue;
-        list($name, $value) = explode('=', $line, 2);
-        $_ENV[trim($name)] = trim($value);
+        $parts = explode('=', $line, 2);
+        if (count($parts) === 2) {
+            $_ENV[trim($parts[0])] = trim($parts[1]);
+        }
     }
 }
 
-// 2. secure Session Start
-$cookieParams = session_get_cookie_params();
+// 2. Secure Session Start
+$isSecureCookie = filter_var($_ENV['COOKIE_SECURE'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
 session_set_cookie_params([
-    'lifetime' => $cookieParams['lifetime'],
+    'lifetime' => 0,       // Session cookie (expires on browser close)
     'path' => '/',
-    'domain' => $cookieParams['domain'],
-    'secure' => false, // Set to true if using HTTPS
-    'httponly' => true,
-    'samesite' => 'Lax' // Needed for cross-site if ports differ, but Lax is usually fine for localhost dev
+    'domain' => '',
+    'secure' => $isSecureCookie,  // true in production (HTTPS), false for localhost dev
+    'httponly' => true,            // Blocks JavaScript access to cookie
+    'samesite' => 'Strict'        // Prevents cross-site request attacks
 ]);
 session_start();
 
+/**
+ * Regenerate the session ID to prevent session fixation.
+ * Call this after successful authentication.
+ */
+function regenerate_session(): void
+{
+    session_regenerate_id(true);
+}
+
 // 3. CORS Headers (Allow Credentials for Sessions)
-$allowed_origins = ['http://localhost:3000'];
+// Read allowed origins from env (comma-separated) or fall back to localhost
+$allowed_origins_str = $_ENV['ALLOWED_ORIGINS'] ?? 'http://localhost:3000';
+$allowed_origins = array_map('trim', explode(',', $allowed_origins_str));
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-if (in_array($origin, $allowed_origins)) {
+if (in_array($origin, $allowed_origins, true)) {
     header("Access-Control-Allow-Origin: $origin");
     header("Access-Control-Allow-Credentials: true");
-    header("Access-Control-Allow-Headers: Content-Type, Authorization");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-CSRF-Token");
     header("Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PUT");
 }
 
 // Handle preflight requests
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
@@ -48,10 +61,13 @@ $username = $_ENV['DB_USER'] ?? 'root';
 $password = $_ENV['DB_PASS'] ?? '';
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$db_name", $username, $password);
+    $conn = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8mb4", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 } catch (PDOException $e) {
     http_response_code(500);
+    header('Content-Type: application/json');
     echo json_encode(["error" => "Connection failed"]);
     exit();
 }

@@ -2,9 +2,10 @@
 // server/login.php
 require 'db.php';
 require 'utils.php';
+require 'security.php';
 
 $input = json_decode(file_get_contents("php://input"), true);
-$email = $input['email'] ?? '';
+$email = sanitize_string($input['email'] ?? '', 255);
 $password = $input['password'] ?? '';
 
 if (empty($email) || empty($password)) {
@@ -13,18 +14,33 @@ if (empty($email) || empty($password)) {
     exit();
 }
 
+// Rate limit: 5 login attempts per IP per 15 minutes
+$ip = get_client_ip();
+check_rate_limit('login:' . $ip, 5, 900);
+
+// Password length guard (prevents absurdly long inputs)
+if (strlen($password) > 256) {
+    http_response_code(400);
+    echo json_encode(["error" => "Invalid credentials"]);
+    exit();
+}
+
 try {
-    // FIXED: Added 'name' to the SELECT statement
     $stmt = $conn->prepare("SELECT id, name, email, password, role FROM users WHERE email = :email");
     $stmt->execute([':email' => $email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($password, $user['password'])) {
+        // Regenerate session ID to prevent session fixation
+        regenerate_session();
+
+        // Clear rate limit on successful login
+        clear_rate_limit('login:' . $ip);
+
         // Close any previous sessions for clean duration tracking
         close_open_sessions($conn, (int) $user['id']);
 
         // Create new login session
-        $ip = get_client_ip();
         $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
         $parsed = parse_user_agent($ua);
         $country = lookup_country($ip);
@@ -55,7 +71,7 @@ try {
         echo json_encode([
             "success" => true,
             "message" => "Login successful",
-            "user" => $user, // This now contains 'name'
+            "user" => $user,
             "session_id" => $sessionId
         ]);
     } else {

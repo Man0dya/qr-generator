@@ -3,12 +3,15 @@
 require 'db.php';
 require 'utils.php';
 require 'urlmd_common.php';
+require 'security.php';
 
 // 1. Get the code from the URL parameter (e.g., redirect.php?c=abc123)
 $code = isset($_GET['c']) ? $_GET['c'] : '';
 
 if (empty($code)) {
-    die("Invalid QR Code.");
+    http_response_code(400);
+    echo "<h1>Invalid Link</h1><p>This link is not valid.</p>";
+    exit();
 }
 
 try {
@@ -43,7 +46,9 @@ try {
 
     if ($qr) {
         if ($qr['status'] !== 'active') {
-            die("This QR code has been disabled.");
+            http_response_code(410);
+            echo "<h1>Link Disabled</h1><p>This QR code has been disabled by its owner or an administrator.</p>";
+            exit();
         }
 
         // 3. TRACK ANALYTICS
@@ -143,7 +148,14 @@ try {
                     }
                 }
 
-                header("Location: " . $qr['destination_url']);
+                // Validate URL scheme to prevent open redirect attacks
+                $destUrl = $qr['destination_url'];
+                if (!validate_redirect_url($destUrl)) {
+                    http_response_code(400);
+                    echo "<h1>Invalid Destination</h1><p>This link points to an invalid destination.</p>";
+                    exit();
+                }
+                header("Location: " . $destUrl);
                 exit;
         }
 
@@ -164,15 +176,21 @@ try {
         $link = $linkStmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$link) {
-            die("QR Code not found.");
+            http_response_code(404);
+            echo "<h1>Not Found</h1><p>This short link does not exist.</p>";
+            exit();
         }
 
         if ($link['status'] !== 'active') {
-            die("This short URL is not active.");
+            http_response_code(410);
+            echo "<h1>Link Disabled</h1><p>This short URL is not active.</p>";
+            exit();
         }
 
         if (!empty($link['expires_at']) && strtotime((string) $link['expires_at']) < time()) {
-            die("This short URL has expired.");
+            http_response_code(410);
+            echo "<h1>Link Expired</h1><p>This short URL has expired.</p>";
+            exit();
         }
 
         urlmd_track_click($conn, $link, null);
@@ -183,7 +201,9 @@ try {
     }
 
 } catch (PDOException $e) {
-    // Ideally log the error to a file instead of showing it to the user
-    die("Server Error.");
+    // Log error to file (don't expose details to users)
+    error_log('Redirect error: ' . $e->getMessage());
+    http_response_code(500);
+    echo "<h1>Server Error</h1><p>Something went wrong. Please try again later.</p>";
 }
 ?>
