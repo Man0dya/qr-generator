@@ -125,10 +125,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background flex font-sans text-foreground selection:bg-primary selection:text-primary-foreground relative">
 
       {/* --- SIDEBAR --- */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-card border-r border-border p-4 flex flex-col z-20 transition-colors duration-300 overflow-hidden">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-card border-r border-border py-3 px-3 flex flex-col z-20 transition-colors duration-300 overflow-hidden">
 
         {/* Brand */}
-        <div className="flex items-center gap-3 mb-6 px-2">
+        <div className="flex items-center gap-3 mb-4 px-2">
           <Logo className="w-8 h-8" />
           <div>
             <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
@@ -138,82 +138,93 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Navigation */}
-        <nav className="space-y-1 flex-1">
-          <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 opacity-70">Management</p>
+        <nav className="space-y-6 flex-1 mt-4">
 
-          <Link
-            href="/admin?view=analytics"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "analytics"
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-          >
-            <BarChart3 size={18} className={currentView === "analytics" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            Global Analytics
-          </Link>
+          {/* Analytics Group */}
+          <div className="space-y-1">
+            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 opacity-70">Analytics</p>
+            <Link
+              href="/admin?view=analytics"
+              className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${currentView === "analytics"
+                ? "bg-primary/5 text-primary border-primary"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
+                }`}
+            >
+              <BarChart3 size={18} className={currentView === "analytics" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+              Global Analytics
+            </Link>
+          </div>
 
-          <Link
-            href="/admin?view=users"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "users"
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-          >
-            <Users size={18} className={currentView === "users" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            User Management
-          </Link>
+          {/* Moderation Group */}
+          <div className="space-y-1">
+            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 opacity-70">Moderation</p>
+            <Link
+              href="/admin?view=moderation"
+              className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${currentView === "moderation"
+                ? "bg-primary/5 text-primary border-primary"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
+                }`}
+            >
+              <ShieldAlert size={18} className={currentView === "moderation" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+              QR Moderation
+            </Link>
 
-          <Link
-            href="/admin?view=moderation"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "moderation"
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-          >
-            <ShieldAlert size={18} className={currentView === "moderation" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            QR Moderation
-          </Link>
+            <Link
+              href="/admin?view=url-moderation"
+              className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${currentView === "url-moderation"
+                ? "bg-primary/5 text-primary border-primary"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
+                }`}
+            >
+              <Link2 size={18} className={currentView === "url-moderation" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+              URL Moderation
+            </Link>
+          </div>
 
-          <Link
-            href="/admin?view=url-moderation"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "url-moderation"
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-          >
-            <Link2 size={18} className={currentView === "url-moderation" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            URL Moderation
-          </Link>
+          {/* Management Group */}
+          <div className="space-y-1">
+            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 opacity-70">Management</p>
+            <Link
+              href="/admin?view=users"
+              className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${currentView === "users"
+                ? "bg-primary/5 text-primary border-primary"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
+                }`}
+            >
+              <Users size={18} className={currentView === "users" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+              User Management
+            </Link>
 
-          <Link
-            href="/admin?view=domains"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "domains"
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-          >
-            <Globe size={18} className={currentView === "domains" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            Domain Management
-          </Link>
+            <Link
+              href="/admin?view=teams"
+              className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${currentView === "teams"
+                ? "bg-primary/5 text-primary border-primary"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
+                }`}
+            >
+              <Users size={18} className={currentView === "teams" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+              Team Management
+            </Link>
 
-          <Link
-            href="/admin?view=teams"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${currentView === "teams"
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-          >
-            <Users size={18} className={currentView === "teams" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            Team Management
-          </Link>
+            <Link
+              href="/admin?view=domains"
+              className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${currentView === "domains"
+                ? "bg-primary/5 text-primary border-primary"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
+                }`}
+            >
+              <Globe size={18} className={currentView === "domains" ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+              Domain Management
+            </Link>
+          </div>
         </nav>
 
         {/* --- FOOTER SECTION --- */}
-        <div className="mt-auto pt-4 space-y-4">
+        <div className="mt-auto pt-2 space-y-4">
 
 
 
-          <div className="flex items-center gap-3 px-2 py-2 mb-2 bg-muted/40 rounded-xl border border-border/50">
+          <div className="flex items-center gap-3 px-2 py-1.5 mb-1 bg-muted/40 rounded-xl border border-border/50">
             <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary font-bold text-xs shrink-0">
               {user.email.charAt(0).toUpperCase()}
             </div>
@@ -226,7 +237,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <button
               onClick={handleLogout}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-destructive hover:bg-destructive/10 border border-destructive/20 hover:border-destructive/30 transition-all font-medium text-sm"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-destructive hover:bg-destructive/10 border border-destructive/20 hover:border-destructive/30 transition-all font-medium text-sm"
             >
               <LogOut size={16} />
               Sign Out

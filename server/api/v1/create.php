@@ -60,12 +60,20 @@ if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
     exit;
 }
 
-// Moderation (Reuse logic? Copy for now to be safe and independent)
-$domain = parse_url($url, PHP_URL_HOST);
-$bannedDomains = ['malware.com', 'phishing.site', 'bad-example.com']; // Example
-if (in_array($domain, $bannedDomains)) {
-    json_response(['error' => 'URL is not allowed'], 400);
-    exit;
+// Moderation
+$mod = moderate_destination_url($conn, $url);
+$status = 'active';
+$is_flagged = 0;
+$flag_reason = null;
+
+if ($mod['action'] === 'ban') {
+    $status = 'banned';
+    $is_flagged = 1;
+    $flag_reason = $mod['reason'] ?? 'Blocked by moderation';
+} elseif ($mod['action'] === 'pause') {
+    $status = 'paused';
+    $is_flagged = 1;
+    $flag_reason = $mod['reason'] ?? 'Flagged by moderation';
 }
 
 // Check custom domain ownership if provided
@@ -92,12 +100,16 @@ function generateRandomStringV1($length = 6)
 $short_code = generateRandomStringV1();
 
 try {
-    $stmt = $conn->prepare("INSERT INTO qr_codes (user_id, destination_url, short_code, status, qr_type, custom_domain_id) VALUES (:uid, :url, :code, 'active', 'url', :did)");
+    $stmt = $conn->prepare("INSERT INTO qr_codes (user_id, destination_url, short_code, status, qr_type, custom_domain_id, is_flagged, flag_reason, flagged_at) VALUES (:uid, :url, :code, :status, 'url', :did, :flagged, :reason, :flagged_at)");
     $stmt->execute([
         ':uid' => $user_id,
         ':url' => $url,
         ':code' => $short_code,
-        ':did' => $custom_domain_id
+        ':status' => $status,
+        ':did' => $custom_domain_id,
+        ':flagged' => $is_flagged,
+        ':reason' => $flag_reason,
+        ':flagged_at' => $is_flagged ? date('Y-m-d H:i:s') : null
     ]);
 
     // Construct final URL

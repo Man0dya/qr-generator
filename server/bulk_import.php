@@ -73,11 +73,33 @@ if ($method === 'POST') {
 
             // Generate QR
             $code = generateRandomString();
-            // Basic moderation (reuse logic if properly modularized, or simplified here)
-            // For bulk, let's assume we want to be careful.
-            // Simplified insertion:
-            $stmt = $conn->prepare("INSERT INTO qr_codes (user_id, destination_url, short_code, status, qr_type) VALUES (:uid, :url, :code, 'active', 'url')");
-            $stmt->execute([':uid' => $user_id, ':url' => $url, ':code' => $code]);
+
+            // Moderation
+            $mod = moderate_destination_url($conn, $url);
+            $status = 'active';
+            $is_flagged = 0;
+            $flag_reason = null;
+
+            if ($mod['action'] === 'ban') {
+                $status = 'banned';
+                $is_flagged = 1;
+                $flag_reason = $mod['reason'] ?? 'Blocked by moderation';
+            } elseif ($mod['action'] === 'pause') {
+                $status = 'paused';
+                $is_flagged = 1;
+                $flag_reason = $mod['reason'] ?? 'Flagged by moderation';
+            }
+
+            $stmt = $conn->prepare("INSERT INTO qr_codes (user_id, destination_url, short_code, status, qr_type, is_flagged, flag_reason, flagged_at) VALUES (:uid, :url, :code, :status, 'url', :flagged, :reason, :flagged_at)");
+            $stmt->execute([
+                ':uid' => $user_id,
+                ':url' => $url,
+                ':code' => $code,
+                ':status' => $status,
+                ':flagged' => $is_flagged,
+                ':reason' => $flag_reason,
+                ':flagged_at' => $is_flagged ? date('Y-m-d H:i:s') : null
+            ]);
 
             $created++;
             $results[] = ['row' => $row_count, 'status' => 'success', 'short_code' => $code, 'url' => $url];

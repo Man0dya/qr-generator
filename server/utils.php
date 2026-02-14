@@ -220,6 +220,7 @@ function analyze_url_for_moderation(string $url): array
     $parsed = @parse_url($url);
     $scheme = strtolower((string) ($parsed['scheme'] ?? ''));
     $host = strtolower((string) ($parsed['host'] ?? ''));
+    $path = strtolower((string) ($parsed['path'] ?? ''));
 
     // Only allow http/https
     if (!in_array($scheme, ['http', 'https'], true)) {
@@ -243,33 +244,33 @@ function analyze_url_for_moderation(string $url): array
 
     // Note: configurable blocklists are applied in moderate_destination_url().
 
-    // Common URL shorteners
-    $shorteners = ['bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly', 'is.gd', 'cutt.ly', 'rebrand.ly'];
+    // Common URL shorteners - often used to mask malicious links
+    $shorteners = ['bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly', 'is.gd', 'cutt.ly', 'rebrand.ly', 'shorte.st', 'adfly', 'bc.vc'];
     if ($host !== '' && in_array($host, $shorteners, true)) {
         $score += 40;
         $reasons[] = 'URL shortener domain';
     }
 
     // Suspicious TLDs (heuristic)
-    $suspiciousTlds = ['zip', 'mov', 'click', 'top', 'xyz', 'tk', 'gq', 'ml', 'cf'];
+    $suspiciousTlds = ['zip', 'mov', 'click', 'top', 'xyz', 'tk', 'gq', 'ml', 'cf', 'ru', 'cn', 'kim', 'fit', 'rest', 'wiki', 'live'];
     $tld = '';
     if ($host !== '' && strpos($host, '.') !== false) {
         $tld = substr($host, strrpos($host, '.') + 1);
     }
     if ($tld !== '' && in_array($tld, $suspiciousTlds, true)) {
-        $score += 15;
-        $reasons[] = 'Suspicious TLD';
+        $score += 30; // Increased from 15
+        $reasons[] = 'Suspicious TLD: ' . $tld;
     }
 
     // Punycode often indicates phishing-like domains
     if ($host !== '' && str_starts_with($host, 'xn--')) {
-        $score += 20;
+        $score += 60; // Increased from 30
         $reasons[] = 'Punycode domain';
     }
 
     // IP address host
     if ($host !== '' && preg_match('/^\d{1,3}(?:\.\d{1,3}){3}$/', $host)) {
-        $score += 25;
+        $score += 85; // Increased from 50
         $reasons[] = 'IP address host';
     }
 
@@ -277,23 +278,65 @@ function analyze_url_for_moderation(string $url): array
     if ($host !== '') {
         $dotCount = substr_count($host, '.');
         if ($dotCount >= 4) {
-            $score += 10;
+            $score += 20; // Increased from 10
             $reasons[] = 'Excessive subdomains';
         }
     }
 
-    // Keywords (very rough)
+    // Very long domain names (often auto-generated)
+    if (strlen($host) > 40) {
+        $score += 20;
+        $reasons[] = 'Suspiciously long domain';
+    }
+
+    // High-risk Keywords (Phishing / Spam)
     $lower = strtolower($url);
-    $badKeywords = ['malware', 'phishing', 'password-reset', 'verify-account', 'free-money', 'crypto-giveaway'];
+    $badKeywords = [
+        'malware',
+        'phishing',
+        'virus',
+        'trojan',
+        'spyware',
+        'password-reset',
+        'verify-account',
+        'secure-login',
+        'update-payment',
+        'free-money',
+        'crypto-giveaway',
+        'bitcoin-doubler',
+        'investment-return',
+        'act-now',
+        'urgent-action',
+        'account-suspended',
+        'confirm-identity',
+        'sex',
+        'porn',
+        'xxx',
+        'dating-hot',
+        'adult-meeting',
+        'casino',
+        'gamble',
+        'betting',
+        'win-big',
+        'lottery'
+    ];
+
     foreach ($badKeywords as $kw) {
         if (str_contains($lower, $kw)) {
-            $score += 20;
+            $score += 90; // Increased from 50 - Immediate BAN (default threshold is 80)
             $reasons[] = 'Suspicious keyword: ' . $kw;
-            break;
+            // If multiple keywords found, we accumulate score to reach ban threshold (default 80)
         }
     }
 
+    // Explicitly check for 'banned' or 'blocked' in URL if someone tries to be funny or test
+    if (str_contains($lower, 'banned') || str_contains($lower, 'blocked')) {
+        $score += 10;
+        $reasons[] = 'Contains "banned" or "blocked"';
+    }
+
     $flagged = $score >= 40;
+    // De-dupe reasons
     $reason = $flagged ? implode('; ', array_values(array_unique($reasons))) : '';
 
     return ['flagged' => $flagged, 'score' => $score, 'reason' => $reason];

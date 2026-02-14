@@ -95,6 +95,11 @@ try {
 		$stmt->execute([':rid' => $actor_user_id, ':id' => $qr_id]);
 		audit_log($conn, $actor_user_id, 'qr_deny_request', 'qr_code', $qr_id);
 
+	} elseif ($action === 'delete') {
+		$stmt = $conn->prepare("DELETE FROM qr_codes WHERE id = :id");
+		$stmt->execute([':id' => $qr_id]);
+		audit_log($conn, $actor_user_id, 'qr_delete', 'qr_code', $qr_id);
+
 	} else {
 		http_response_code(400);
 		echo json_encode(["error" => "Invalid action"]);

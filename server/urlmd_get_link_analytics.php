@@ -4,7 +4,11 @@ require 'utils.php';
 
 $user = require_auth();
 $userId = (int) $user['id'];
-$role = (string) ($user['role'] ?? 'user');
+
+// Robust Role Check: Fetch from DB
+$stmt = $conn->prepare("SELECT role FROM users WHERE id = :id");
+$stmt->execute([':id' => $userId]);
+$role = (string) ($stmt->fetchColumn() ?: 'user');
 $linkId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 if ($linkId <= 0) {

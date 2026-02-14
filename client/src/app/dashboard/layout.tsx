@@ -5,7 +5,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, PlusCircle, LogOut,
-  ShieldCheck, UserCog, History, Globe, Users, Upload, Terminal, Link2, QrCode
+  ShieldCheck, UserCog, History, Globe, Users, Upload, Terminal, Link2, QrCode, Palette
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -59,179 +59,173 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex font-sans text-foreground selection:bg-primary selection:text-primary-foreground relative">
 
       {/* --- SIDEBAR  --- */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-card border-r border-border p-4 flex flex-col z-20 transition-colors duration-300 overflow-hidden">
-        <div className="flex items-center gap-2.5 mb-4 px-1.5">
-          <Logo className="w-8 h-8" />
-          <h1 className="text-base font-bold text-foreground">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-card border-r border-border/60 flex flex-col z-20 transition-colors duration-300">
+        <div className="h-14 flex items-center gap-3 px-6 border-b border-border/60">
+          <Logo className="w-7 h-7" />
+          <h1 className="text-sm font-bold text-foreground tracking-tight">
             URLMD Console
           </h1>
         </div>
 
-        <nav className="space-y-0.5 flex-1 overflow-y-auto pr-1">
+        <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-1">
           <Link
             href="/dashboard"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard'
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${pathname === '/dashboard'
+              ? "bg-primary/5 text-primary border-primary"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
               }`}
           >
-            <LayoutDashboard size={18} className={pathname === '/dashboard' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            Dashboard
+            <LayoutDashboard size={18} className={pathname === '/dashboard' ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"} />
+            Overview
           </Link>
 
           <Link
             href="/dashboard/new-asset"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/new-asset'
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${pathname === '/dashboard/new-asset'
+              ? "bg-primary/5 text-primary border-primary"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
               }`}
           >
-            <PlusCircle size={18} className={pathname === '/dashboard/new-asset' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <PlusCircle size={18} className={pathname === '/dashboard/new-asset' ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"} />
             New Asset
           </Link>
 
-          <div className="pt-2.5 pb-1">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2.5 opacity-70">Assets</p>
+          {/* --- URL SHORTENER --- */}
+          <div className="pt-3 pb-1 px-3">
+            <p className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Products</p>
           </div>
 
           <Link
-            href="/dashboard/urlmd?view=with-qr"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${(pathname === '/dashboard/urlmd' && urlmdView === 'with-qr')
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-          >
-            <Link2 size={18} className={(pathname === '/dashboard/urlmd' && urlmdView === 'with-qr') ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            Short Links with QR
-          </Link>
-
-          <Link
             href="/dashboard/urlmd"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${(pathname === '/dashboard/urlmd' && urlmdView !== 'with-qr')
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${pathname.startsWith('/dashboard/urlmd')
+              ? "bg-primary/5 text-primary border-primary"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
               }`}
           >
-            <Link2 size={18} className={(pathname === '/dashboard/urlmd' && urlmdView !== 'with-qr') ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            Short Links
+            <Link2 size={18} className={pathname.startsWith('/dashboard/urlmd') ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"} />
+            URL Shortener
           </Link>
 
           <Link
             href="/dashboard/qrs"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/qrs'
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${pathname.startsWith('/dashboard/qrs')
+              ? "bg-primary/5 text-primary border-primary"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
               }`}
           >
-            <QrCode size={18} className={pathname === '/dashboard/qrs' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
-            QRs
+            <QrCode size={18} className={pathname.startsWith('/dashboard/qrs') ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"} />
+            QR Generator
           </Link>
 
-          <div className="pt-3 pb-1">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2.5 opacity-70">Workspace</p>
+          <div className="pt-3 pb-1 px-3">
+            <p className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Workspace</p>
           </div>
 
           <Link
             href="/dashboard/login-history"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/login-history'
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${pathname === '/dashboard/login-history'
+              ? "bg-primary/5 text-primary border-primary"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
               }`}
           >
-            <History size={18} className={pathname === '/dashboard/login-history' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <History size={18} className={pathname === '/dashboard/login-history' ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"} />
             History
           </Link>
 
           <Link
             href="/dashboard/settings"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/settings'
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${pathname === '/dashboard/settings'
+              ? "bg-primary/5 text-primary border-primary"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
               }`}
           >
-            <UserCog size={18} className={pathname === '/dashboard/settings' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <UserCog size={18} className={pathname === '/dashboard/settings' ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"} />
             Settings
           </Link>
 
-          <div className="pt-3 pb-1">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2.5 opacity-70">Enterprise</p>
+          <div className="pt-3 pb-1 px-3">
+            <p className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Enterprise</p>
           </div>
 
           <Link
             href="/dashboard/domains"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/domains'
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${pathname === '/dashboard/domains'
+              ? "bg-primary/5 text-primary border-primary"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
               }`}
           >
-            <Globe size={18} className={pathname === '/dashboard/domains' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <Globe size={18} className={pathname === '/dashboard/domains' ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"} />
             Custom Domains
           </Link>
 
           <Link
             href="/dashboard/teams"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/teams'
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${pathname === '/dashboard/teams'
+              ? "bg-primary/5 text-primary border-primary"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
               }`}
           >
-            <Users size={18} className={pathname === '/dashboard/teams' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <Users size={18} className={pathname === '/dashboard/teams' ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"} />
             Teams
           </Link>
 
           <Link
             href="/dashboard/bulk"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/bulk'
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${pathname === '/dashboard/bulk'
+              ? "bg-primary/5 text-primary border-primary"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
               }`}
           >
-            <Upload size={18} className={pathname === '/dashboard/bulk' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <Upload size={18} className={pathname === '/dashboard/bulk' ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"} />
             Bulk Import
           </Link>
 
           <Link
             href="/dashboard/developers"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group font-medium text-sm ${pathname === '/dashboard/developers'
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200 group font-medium text-sm border-l-2 ${pathname === '/dashboard/developers'
+              ? "bg-primary/5 text-primary border-primary"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent"
               }`}
           >
-            <Terminal size={18} className={pathname === '/dashboard/developers' ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground transition-colors"} />
+            <Terminal size={18} className={pathname === '/dashboard/developers' ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"} />
             Developers
           </Link>
 
           {(user.role === 'admin' || user.role === 'super_admin') && (
-            <Link
-              href={user.role === 'super_admin' ? "/super-admin" : "/admin"}
-              className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-amber-500 hover:bg-amber-500/10 transition-all font-medium mt-4 text-sm"
-            >
-              <ShieldCheck size={16} />
-              {user.role === 'super_admin' ? 'Super Admin' : 'Admin Panel'}
-            </Link>
+            <div className="pt-3 px-3">
+              <Link
+                href={user.role === 'super_admin' ? "/super-admin" : "/admin"}
+                className="flex items-center gap-2.5 px-3 py-1.5 rounded-md text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 transition-all font-medium text-sm border border-amber-500/20"
+              >
+                <ShieldCheck size={16} />
+                {user.role === 'super_admin' ? 'Super Admin' : 'Admin Panel'}
+              </Link>
+            </div>
           )}
         </nav>
 
-        <div className="mt-auto pt-3 space-y-3 border-t border-border/60">
-          <div className="flex items-center gap-2.5 px-2 py-2 bg-muted/40 rounded-xl border border-border/50">
-            <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center text-primary font-bold text-xs shrink-0">
+        <div className="p-3 border-t border-border/60 bg-muted/20">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-xs shrink-0">
               {initial}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-bold truncate text-foreground">{displayName}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{displayEmail}</p>
+              <p className="text-sm font-semibold truncate text-foreground">{displayName}</p>
+              <p className="text-xs text-muted-foreground truncate opacity-80">{displayEmail}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handleLogout}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-destructive hover:bg-destructive/10 border border-destructive/20 hover:border-destructive/30 transition-all font-medium text-sm"
+              className="flex-1 flex items-center justify-center gap-2 h-8 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all font-medium text-xs border border-border hover:border-destructive/20"
             >
               <LogOut size={14} />
               Logout
             </button>
-            <ThemeToggle />
+            <div className="scale-90 origin-right">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </aside>

@@ -8,7 +8,11 @@ $qr_id = $_GET['qr_id'] ?? null;
 // Auth
 $user = require_auth();
 $user_id = $user['id'];
-$role = $user['role'] ?? 'user';
+
+// Robust Role Check: Fetch from DB to ensure validity
+$stmt = $conn->prepare("SELECT role FROM users WHERE id = :id");
+$stmt->execute([':id' => $user_id]);
+$role = $stmt->fetchColumn() ?: 'user';
 
 function has_column(PDO $conn, string $table, string $column): bool
 {

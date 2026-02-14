@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Trash2, Key, Shield, UserMinus, QrCode } from "lucide-react";
+import { Trash2, Key, Shield, UserMinus, QrCode, Search, ChevronLeft, ChevronRight, UserCog } from "lucide-react";
 
 type UserRole = "user" | "admin" | "super_admin";
 
@@ -101,38 +101,42 @@ export default function UsersTable({ users, currentUser, onAction, onViewQrs }: 
   const canAct = role === "admin" || role === "super_admin";
 
   const Row = ({ u }: { u: { id: number; email: string; role: UserRole; created_at: string; name?: string | null } }) => (
-    <tr key={u.id} className="hover:bg-muted/50 transition">
-      <td className="p-4 font-medium text-foreground">
+    <tr key={u.id} className="hover:bg-muted/30 transition-colors group">
+      <td className="px-5 py-3.5 font-medium text-foreground">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xs font-bold">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
             {u.email.charAt(0).toUpperCase()}
           </div>
-          <span className="truncate" title={u.email}>
-            {u.email}
-          </span>
+          <div>
+            <div className="truncate text-sm font-medium" title={u.email}>
+              {u.email}
+            </div>
+            {u.name && <div className="text-xs text-muted-foreground">{u.name}</div>}
+          </div>
         </div>
       </td>
-      <td className="p-4">
+      <td className="px-5 py-3.5">
         <span
           className={
-            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium " +
+            "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase " +
             (u.role === "admin" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground")
           }
         >
           {u.role}
         </span>
       </td>
-      <td className="p-4 text-sm text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</td>
+      <td className="px-5 py-3.5 text-sm text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</td>
 
       {canAct ? (
-        <td className="p-4 text-right">
-          <div className="flex justify-end items-center gap-2 flex-wrap">
+        <td className="px-5 py-3.5 text-right">
+          <div className="flex justify-end items-center gap-1.5 flex-wrap">
             {onViewQrs ? (
               <button
                 onClick={() => onViewQrs(u.id)}
-                className="inline-flex items-center gap-1.5 h-9 px-3 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg border border-primary/20 transition"
+                className="inline-flex items-center justify-center h-7 w-7 rounded border border-border text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+                title="View QRs"
               >
-                <QrCode size={14} /> View QRs
+                <QrCode size={14} />
               </button>
             ) : null}
 
@@ -141,33 +145,35 @@ export default function UsersTable({ users, currentUser, onAction, onViewQrs }: 
                 {u.role === "user" ? (
                   <button
                     onClick={() => onAction("change_role", u.id, { new_role: "admin" })}
-                    className="inline-flex items-center gap-1.5 h-9 px-3 text-xs font-bold text-amber-600 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg border border-amber-500/20 transition"
+                    className="inline-flex items-center justify-center h-7 w-7 rounded border border-border text-amber-600 hover:bg-amber-500/10 transition-colors"
+                    title="Promote to Admin"
                   >
-                    <Shield size={14} /> Promote
+                    <Shield size={14} />
                   </button>
                 ) : (
                   <button
                     onClick={() => onAction("change_role", u.id, { new_role: "user" })}
-                    className="inline-flex items-center gap-1.5 h-9 px-3 text-xs font-bold text-muted-foreground bg-muted hover:bg-muted/80 rounded-lg border border-border transition"
+                    className="inline-flex items-center justify-center h-7 w-7 rounded border border-border text-muted-foreground hover:bg-muted transition-colors"
+                    title="Demote to User"
                   >
-                    <UserMinus size={14} /> Demote
+                    <UserMinus size={14} />
                   </button>
                 )}
 
                 <button
                   onClick={() => onAction("force_logout", u.id)}
-                  className="inline-flex items-center gap-1.5 h-9 px-3 text-xs font-bold text-muted-foreground bg-muted hover:bg-muted/80 rounded-lg border border-border transition"
-                  title="Force logout user (closes open sessions)"
+                  className="inline-flex items-center justify-center h-7 w-7 rounded border border-border text-muted-foreground hover:bg-muted transition-colors"
+                  title="Force Logout"
                 >
-                  <Key size={14} /> Force Logout
+                  <Key size={14} />
                 </button>
 
                 <button
                   onClick={() => onAction("delete_user", u.id)}
-                  className="inline-flex items-center justify-center h-9 w-9 text-destructive hover:bg-destructive/10 rounded-lg transition"
-                  title="Delete user"
+                  className="inline-flex items-center justify-center h-7 w-7 rounded border border-destructive/20 text-destructive hover:bg-destructive/10 transition-colors"
+                  title="Delete User"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={14} />
                 </button>
               </>
             ) : null}
@@ -178,154 +184,146 @@ export default function UsersTable({ users, currentUser, onAction, onViewQrs }: 
   );
 
   return (
-    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-      <div className="p-4 border-b border-border bg-muted/30 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-card border border-border text-foreground">
-            Total: {counts.total}
-          </span>
-          <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400">
-            Admins: {counts.admins}
-          </span>
-          <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-muted/50 border border-border text-muted-foreground">
-            Users: {counts.users}
-          </span>
+    <div className="bg-card rounded-xl border border-border/60 shadow-sm overflow-hidden">
+      {/* Header */}
+      <div className="p-5 border-b border-border/60 bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 text-primary rounded-lg shrink-0">
+            <UserCog size={18} />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-foreground">User Management</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-card border border-border text-muted-foreground">
+                Total: {counts.total}
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-600">
+                Admins: {counts.admins}
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted border border-border text-muted-foreground">
+                Users: {counts.users}
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex items-center rounded-lg border border-border bg-card p-1">
+          <div className="bg-background border border-border/60 rounded-md p-0.5 flex items-center">
             <button
-              type="button"
-              onClick={() => {
-                setTab("admins");
-                setPage(1);
-              }}
-              className={
-                "h-8 px-3 rounded-md text-xs font-bold transition " +
-                (tab === "admins" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" : "text-muted-foreground hover:bg-muted")
-              }
+              onClick={() => { setTab("admins"); setPage(1); }}
+              className={`px-3 py-1 rounded-sm text-xs font-medium transition-all ${tab === "admins" ? "bg-primary/10 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
             >
               Admins
             </button>
             <button
-              type="button"
-              onClick={() => {
-                setTab("users");
-                setPage(1);
-              }}
-              className={
-                "h-8 px-3 rounded-md text-xs font-bold transition " +
-                (tab === "users" ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted")
-              }
+              onClick={() => { setTab("users"); setPage(1); }}
+              className={`px-3 py-1 rounded-sm text-xs font-medium transition-all ${tab === "users" ? "bg-primary/10 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
             >
               Users
             </button>
           </div>
+        </div>
+      </div>
 
-          <span className="text-xs font-bold text-muted-foreground ml-1">Sort</span>
-          <select
-            value={sort}
-            onChange={(e) => {
-              setSort(e.target.value as SortKey);
-              setPage(1);
-            }}
-            className="h-9 text-sm bg-card border border-border rounded-lg px-3 outline-none focus:border-primary transition text-foreground"
-          >
-            <option value="joined_desc">Joined (newest)</option>
-            <option value="joined_asc">Joined (oldest)</option>
-            <option value="email_asc">Email (A-Z)</option>
-            <option value="email_desc">Email (Z-A)</option>
-          </select>
-
+      {/* Controls */}
+      <div className="px-5 py-3 border-b border-border/60 bg-muted/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
           <input
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
               setPage(1);
             }}
-            placeholder="Search name or email"
-            className="h-9 w-56 max-w-full text-sm bg-card border border-border rounded-lg px-3 outline-none focus:border-primary transition text-foreground placeholder:text-muted-foreground"
+            placeholder="Search users..."
+            className="h-9 pl-9 pr-3 w-64 max-w-full text-sm bg-background border border-border rounded-md outline-none focus:border-primary transition text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary/20"
           />
+        </div>
 
-          <span className="text-xs font-bold text-muted-foreground ml-1">Show</span>
+        <div className="flex items-center gap-2">
+          <select
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value as SortKey);
+              setPage(1);
+            }}
+            className="h-8 text-xs bg-background border border-border rounded-md px-2 outline-none focus:border-primary transition text-foreground"
+          >
+            <option value="joined_desc">Newest First</option>
+            <option value="joined_asc">Oldest First</option>
+            <option value="email_asc">Email (A-Z)</option>
+            <option value="email_desc">Email (Z-A)</option>
+          </select>
+
           <select
             value={pageSize}
             onChange={(e) => {
               setPageSize(Number(e.target.value));
               setPage(1);
             }}
-            className="h-9 text-sm bg-card border border-border rounded-lg px-3 outline-none focus:border-primary transition text-foreground"
+            className="h-8 text-xs bg-background border border-border rounded-md px-2 outline-none focus:border-primary transition text-foreground"
           >
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
+            <option value={10}>10 rows</option>
+            <option value={25}>25 rows</option>
+            <option value={50}>50 rows</option>
           </select>
         </div>
       </div>
 
-      <div className="px-4 py-3 border-b border-border bg-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div className="text-sm text-muted-foreground">
-          <span className="font-bold text-foreground">{tab === "admins" ? "Admins" : "Users"}</span>
-          <span className="ml-2 text-muted-foreground">Showing {rangeLabel}</span>
-          {normalizedQuery ? <span className="ml-2 text-muted-foreground/70">for “{query.trim()}”</span> : null}
-        </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-border/60 bg-muted/20 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <th className="px-5 py-3 font-medium">User</th>
+              <th className="px-5 py-3 font-medium">Role</th>
+              <th className="px-5 py-3 font-medium">Joined</th>
+              {canAct && (
+                <th className="px-5 py-3 font-medium text-right">Actions</th>
+              )}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/60">
+            {pagedList.map((u) => (
+              <Row key={u.id} u={u} />
+            ))}
 
-        <div className="flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1}
-            className={
-              "h-9 px-3 rounded-lg border text-xs font-bold transition " +
-              (page <= 1
-                ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
-                : "bg-card text-foreground border-border hover:bg-muted")
-            }
-          >
-            Prev
-          </button>
-          <span className="text-xs font-bold text-muted-foreground">Page {Math.min(Math.max(1, page), pageCount)} / {pageCount}</span>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-            disabled={page >= pageCount}
-            className={
-              "h-9 px-3 rounded-lg border text-xs font-bold transition " +
-              (page >= pageCount
-                ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
-                : "bg-card text-foreground border-border hover:bg-muted")
-            }
-          >
-            Next
-          </button>
-        </div>
+            {activeList.length === 0 ? (
+              <tr>
+                <td className="px-5 py-8 text-center text-muted-foreground" colSpan={canAct ? 4 : 3}>
+                  No {tab === "admins" ? "admins" : "users"} found.
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
       </div>
 
-      <table className="w-full text-left border-collapse">
-        <thead className="bg-muted/50 border-b border-border">
-          <tr>
-            <th className="p-4 text-xs font-bold text-muted-foreground uppercase">User Email</th>
-            <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Role</th>
-            <th className="p-4 text-xs font-bold text-muted-foreground uppercase">Joined</th>
-            {canAct && (
-              <th className="p-4 text-xs font-bold text-muted-foreground uppercase text-right">Actions</th>
-            )}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {pagedList.map((u) => (
-            <Row key={u.id} u={u} />
-          ))}
-
-          {activeList.length === 0 ? (
-            <tr>
-              <td className="p-6 text-muted-foreground" colSpan={canAct ? 4 : 3}>
-                No {tab === "admins" ? "admins" : "users"} found.
-              </td>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
+      {/* Footer */}
+      {pagedList.length > 0 && (
+        <div className="px-5 py-3 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground bg-muted/20">
+          <div>
+            Showing {rangeLabel}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="p-1 rounded-md border border-border bg-card hover:bg-muted disabled:opacity-50 transition-colors"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+              disabled={page >= pageCount}
+              className="p-1 rounded-md border border-border bg-card hover:bg-muted disabled:opacity-50 transition-colors"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

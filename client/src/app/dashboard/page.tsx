@@ -204,115 +204,94 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-card border border-border rounded-2xl p-6 shadow-sm">
+    <div className="space-y-8 animate-fade-in-up">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border/40 pb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard Overview</h1>
-          <p className="text-muted-foreground mt-2">Track short links and QR campaigns from one clean command center.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Overview of your links, QR codes, and performance.</p>
         </div>
         <Link
           href="/dashboard/new-asset"
-          className="bg-primary text-primary-foreground px-5 py-3 rounded-xl hover:bg-primary/90 transition shadow-md shadow-primary/20 font-medium flex items-center gap-2"
+          className="h-9 px-4 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 inline-flex items-center gap-2 text-sm shadow-sm transition-all hover:shadow-md"
         >
-          <Plus size={20} /> New Asset
+          <Plus size={16} /> Create New
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
-              <Link2 size={24} />
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Active Short Links</p>
-              <p className="text-2xl font-bold text-card-foreground">{activeShortLinks}</p>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-card p-5 rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Total Assets</span>
+            <Link2 size={16} className="text-muted-foreground" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-foreground">{totalAssets}</span>
+            <span className="text-xs text-muted-foreground">links & QRs</span>
           </div>
         </div>
-        <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
-              <QrCode size={24} />
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Total QR Codes</p>
-              <p className="text-2xl font-bold text-card-foreground">{totalQrs}</p>
-            </div>
+
+        <div className="bg-card p-5 rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Total Clicks</span>
+            <ArrowUpRight size={16} className="text-muted-foreground" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-foreground">{totalClicks.toLocaleString()}</span>
+            <span className="text-xs text-muted-foreground">engagements</span>
           </div>
         </div>
-        <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
-              <ArrowUpRight size={24} />
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Total Clicks</p>
-              <p className="text-2xl font-bold text-card-foreground">{totalClicks}</p>
-            </div>
+
+        <div className="bg-card p-5 rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Active Links</span>
+            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-foreground">{activeShortLinks}</span>
+            <span className="text-xs text-muted-foreground">of {urlLinks.length} total</span>
           </div>
         </div>
-        <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-xl">
-              <Link2 size={24} />
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Total Assets</p>
-              <p className="text-2xl font-bold text-card-foreground">{totalAssets}</p>
-            </div>
+
+        <div className="bg-card p-5 rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Active QRs</span>
+            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
           </div>
-        </div>
-        <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl">
-              <QrCode size={24} />
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Active QRs</p>
-              <p className="text-2xl font-bold text-card-foreground">{activeQrs}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
-              <ArrowUpRight size={24} />
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Avg Clicks / Asset</p>
-              <p className="text-2xl font-bold text-card-foreground">{avgClicksPerAsset}</p>
-            </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-foreground">{activeQrs}</span>
+            <span className="text-xs text-muted-foreground">of {totalQrs} total</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-5 md:p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-card-foreground mb-6">Recent Activity</h2>
+      <div className="bg-card border border-border/60 rounded-xl shadow-sm">
+        <div className="p-5 border-b border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h2 className="text-base font-semibold text-foreground">Recent Activity</h2>
 
-        <div className="mb-5 flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name, short URL, destination, or status…"
-              className="h-10 w-full md:w-[420px] max-w-full text-sm bg-card border border-border rounded-lg px-3 outline-none focus:border-primary transition text-card-foreground placeholder:text-muted-foreground"
-            />
+            <div className="relative">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Computed search..."
+                className="h-8 w-full sm:w-[200px] text-xs bg-muted/50 border border-border rounded-md px-3 outline-none focus:border-primary transition text-foreground placeholder:text-muted-foreground"
+              />
+            </div>
 
             <select
               value={assetTypeFilter}
               onChange={(e) => setAssetTypeFilter(e.target.value as "all" | "link" | "qr")}
-              className="h-10 text-sm bg-card border border-border rounded-lg px-3 outline-none focus:border-primary text-card-foreground"
+              className="h-8 text-xs bg-muted/50 border border-border rounded-md px-2 outline-none focus:border-primary text-foreground cursor-pointer"
             >
               <option value="all">All Types</option>
-              <option value="link">Short Links</option>
-              <option value="qr">QRs</option>
+              <option value="link">Links</option>
+              <option value="qr">QR Codes</option>
             </select>
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "paused" | "blocked" | "expired")}
-              className="h-10 text-sm bg-card border border-border rounded-lg px-3 outline-none focus:border-primary text-card-foreground"
+              className="h-8 text-xs bg-muted/50 border border-border rounded-md px-2 outline-none focus:border-primary text-foreground cursor-pointer"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -321,134 +300,131 @@ export default function DashboardPage() {
               <option value="expired">Expired</option>
             </select>
           </div>
-
-          <div className="text-sm text-muted-foreground">Showing {rangeLabel}</div>
         </div>
 
         {filteredAssets.length === 0 ? (
-          <div className="text-center py-24 bg-card rounded-3xl border border-dashed border-border">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground">
-              <Link2 size={32} />
+          <div className="text-center py-16">
+            <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3 text-muted-foreground">
+              <Link2 size={24} />
             </div>
-            <h3 className="text-lg font-bold text-card-foreground mb-2">No links or QR codes found.</h3>
-            <p className="text-muted-foreground mb-6 max-w-sm mx-auto">No links or QR codes found. Create your first asset to get started.</p>
-            <Link href="/dashboard/new-asset" className="text-primary font-medium hover:underline">
-              Create your first asset &rarr;
+            <h3 className="text-sm font-medium text-foreground">No assets found</h3>
+            <p className="text-xs text-muted-foreground mt-1 mb-4">
+              Get started by creating your first short link or QR code.
+            </p>
+            <Link href="/dashboard/new-asset" className="text-primary text-xs font-medium hover:underline">
+              Create Asset &rarr;
             </Link>
           </div>
         ) : (
-          <div className="bg-background rounded-2xl border border-border overflow-hidden">
-            <div className="grid grid-cols-12 gap-3 px-4 py-3 bg-muted/40 border-b border-border text-xs font-bold uppercase tracking-wide text-muted-foreground">
-              <div className="col-span-12 md:col-span-3">Asset Name</div>
-              <div className="col-span-12 md:col-span-3">Short URL</div>
-              <div className="col-span-12 md:col-span-3">Destination</div>
-              <div className="col-span-12 md:col-span-3">Scans/Clicks</div>
-            </div>
-
-            {pagedAssets.map((item) => (
-              <div key={item.id} className="grid grid-cols-12 gap-3 px-4 py-4 border-b border-border/70 last:border-b-0 items-center">
-                <div className="col-span-12 md:col-span-3 min-w-0">
-                  <div className="flex items-start gap-2">
-                    <span className="mt-0.5 text-muted-foreground">
-                      {item.type === "link" ? <Link2 size={16} /> : <QrCode size={16} />}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-card-foreground truncate" title={item.name}>{item.name}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Clock size={12} /> {item.createdAtLabel}
-                        <span className="mx-1">•</span>
-                        <span className="uppercase">{item.type}</span>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-border/60 bg-muted/20 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-5 py-3 font-medium">Asset</th>
+                  <th className="px-5 py-3 font-medium">Short Link</th>
+                  <th className="px-5 py-3 font-medium">Destination</th>
+                  <th className="px-5 py-3 font-medium text-right">Clicks</th>
+                  <th className="px-5 py-3 font-medium text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {pagedAssets.map((item) => (
+                  <tr key={item.id} className="hover:bg-muted/30 transition-colors group">
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded-md shrink-0 ${item.type === 'qr' ? 'bg-purple-500/10 text-purple-600' : 'bg-blue-500/10 text-blue-600'}`}>
+                          {item.type === "link" ? <Link2 size={16} /> : <QrCode size={16} />}
+                        </div>
+                        <div className="min-w-0 max-w-[200px]">
+                          <p className="font-medium text-foreground truncate" title={item.name}>{item.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <Clock size={10} /> {item.createdAtLabel}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <a
+                        href={item.shortUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary hover:underline flex items-center gap-1 truncate max-w-[180px] font-medium"
+                        title={item.shortUrl}
+                      >
+                        {item.shortUrl.replace(API_BASE, "")} <ExternalLink size={10} className="opacity-50" />
+                      </a>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="max-w-[250px] truncate text-muted-foreground text-xs" title={item.destination}>
+                        {item.destination}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {item.type === "link" && item.redirectType ? `Type: ${item.redirectType}` : "Direct Redirect"}
                       </p>
-                      <p className="text-[11px] mt-1">
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <span className="font-semibold text-foreground">{item.clicks}</span>
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="flex flex-col items-end gap-1">
                         <span className={
-                          "inline-flex items-center rounded-full px-2 py-0.5 border font-semibold uppercase " +
+                          "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase border " +
                           (item.status === "active"
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                            ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/20"
                             : item.status === "paused"
-                              ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                              : "bg-destructive/10 text-destructive border-destructive/20")
+                              ? "bg-amber-500/5 text-amber-600 border-amber-500/20"
+                              : "bg-destructive/5 text-destructive border-destructive/20")
                         }>
                           {item.status}
                         </span>
-
-                        {(item.status === 'banned' || item.status === 'paused') && item.approvalStatus === 'none' && item.type === 'qr' ? (
+                        {(item.status === 'banned' || item.status === 'paused') && item.approvalStatus === 'none' && item.type === 'qr' && (
                           <button
                             onClick={() => handleRequestApproval(item.sourceId)}
-                            className="ml-2 text-xs text-primary underline hover:no-underline"
+                            className="text-[10px] text-primary hover:underline"
                           >
-                            Request Approval
+                            Request Review
                           </button>
-                        ) : null}
-
-                        {item.approvalStatus === 'requested' ? (
-                          <span className="ml-2 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded">
-                            Review Pending
-                          </span>
-                        ) : null}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-span-12 md:col-span-3 min-w-0">
-                  <a
-                    href={item.shortUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm text-primary hover:underline inline-flex items-center gap-1 max-w-full truncate"
-                    title={item.shortUrl}
-                  >
-                    {item.shortUrl} <ExternalLink size={12} />
-                  </a>
-                </div>
-
-                <div className="col-span-12 md:col-span-3 min-w-0">
-                  <a
-                    href={item.destination}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm text-muted-foreground hover:text-foreground hover:underline max-w-full truncate block"
-                    title={item.destination}
-                  >
-                    {item.destination}
-                  </a>
-                  <p className="text-[11px] text-muted-foreground mt-1 truncate" title={item.redirectType ? `Redirect: ${item.redirectType}` : ""}>
-                    {item.type === "link" && item.redirectType ? `Redirect: ${item.redirectType}` : "QR Redirect"}
-                    {item.updatedAtLabel ? ` • Updated: ${item.updatedAtLabel}` : ""}
-                  </p>
-                </div>
-
-                <div className="col-span-12 md:col-span-3">
-                  <p className="text-sm font-semibold text-card-foreground">{item.clicks}</p>
-                  <p className="text-[11px] text-muted-foreground">Unique: {item.uniqueClicks}</p>
-                </div>
-              </div>
-            ))}
+                        )}
+                        {item.approvalStatus === 'requested' && (
+                          <span className="text-[10px] text-amber-600">Review Pending</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
-        {filteredAssets.length > 0 ? (
-          <div className="mt-4 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={safePage <= 1}
-              className="h-9 px-3 rounded-lg border border-border text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Prev
-            </button>
-            <span className="text-sm text-muted-foreground">Page {safePage} / {pageCount}</span>
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-              disabled={safePage >= pageCount}
-              className="h-9 px-3 rounded-lg border border-border text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
+        {filteredAssets.length > 0 && (
+          <div className="px-5 py-3 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground bg-muted/20">
+            <div>
+              Showing {rangeLabel}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={safePage <= 1}
+                className="px-2 py-1 rounded border border-border bg-card hover:bg-muted disabled:opacity-50 transition-colors"
+              >
+                Prev
+              </button>
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                disabled={safePage >= pageCount}
+                className="px-2 py-1 rounded border border-border bg-card hover:bg-muted disabled:opacity-50 transition-colors"
+              >
+                Next
+              </button>
+            </div>
           </div>
-        ) : null}
+        )}
       </div>
-    </div >
+    </div>
   );
 }

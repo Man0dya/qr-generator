@@ -79,6 +79,19 @@ if ($action === 'block') {
         exit();
     }
 
+} elseif ($action === 'delete') {
+    try {
+        $stmt = $conn->prepare("DELETE FROM url_links WHERE id = :id");
+        $stmt->execute([':id' => $linkId]);
+
+        audit_log($conn, $actorUserId, 'url_delete', 'url_link', $linkId);
+        json_response(['success' => true]);
+        exit();
+    } catch (Exception $e) {
+        json_response(['error' => 'Failed to delete link'], 500);
+        exit();
+    }
+
 } else {
     json_response(['error' => 'Invalid action'], 400);
     exit();
